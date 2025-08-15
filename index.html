@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoCertify</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1>GoCertify</h1>
+
+            <div class="panel">
+                <h3>Upload Template</h3>
+                <input type="file" id="templateUpload" accept="image/*">
+            </div>
+
+            <div class="zoom-controls">
+                <button onclick="zoomOut()">−</button>
+                <span id="zoomLevel">100%</span>
+                <button onclick="zoomIn()">+</button>
+                <button onclick="resetZoom()" style="border-radius: 4px; width: auto; padding: 5px 10px;">Reset</button>
+            </div>
+
+            <div class="panel">
+                <h3>Editing Modes</h3>
+                <div class="mode-controls">
+                    <label>
+                        <input type="radio" name="mode" value="brush" id="brushMode">
+                        <span>Brush Mode</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="edit" id="editMode">
+                        <span>Edit Mode</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="move" id="moveMode" checked>
+                        <span>Move Mode</span>
+                    </label>
+                </div>
+                
+                <div class="brush-controls" id="brushControls" style="display: none;">
+                    <strong>Brush Settings:</strong><br>
+                    Size: <input type="range" id="brushSize" min="5" max="50" value="20">
+                    <span id="brushSizeDisplay">20px</span>
+                    Current Color: <div id="currentColor" class="color-display" style="background-color: #ffffff;"></div>
+                    <button onclick="undoLastBrush()">Undo Last</button>
+                </div>
+            </div>
+
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="certificateCanvas" width="800" height="600"></canvas>
+                <div id="editOverlay">
+                    <div><strong>Add text at this position:</strong></div>
+                    <input type="text" id="editInput" placeholder="Enter replacement text" style="width: 100%; margin: 10px 0; padding: 8px;">
+                    <div>
+                        <button onclick="confirmEdit()" style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px;">Add Text</button>
+                        <button onclick="makeVariable()" style="background: #ffc107; color: black; padding: 8px 15px; border: none; border-radius: 4px;">Add Variable</button>
+                        <button onclick="cancelEdit()" style="background: #6c757d; color: white; padding: 8px 15px; border: none; border-radius: 4px;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <strong>Instructions:</strong><br>
+                • <strong>Brush Mode:</strong> Hold and drag to paint over unwanted text<br>
+                • <strong>Edit Mode:</strong> Click to add new text or variables, OR click with signature selected to place signature<br>
+                • <strong>Move Mode:</strong> Drag elements to reposition them<br>
+                • <strong>Signatures:</strong> Upload images, select one, then click "Add to Canvas" or use Edit Mode to place
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h3>Text & Content Controls</h3>
+            
+            <div class="text-style-controls">
+                <select id="fontFamily">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Comic Sans MS">Comic Sans MS</option>
+                </select>
+                <input type="number" id="fontSize" value="24" min="8" max="200" placeholder="Size">
+                <input type="color" id="textColor" value="#000000">
+            </div>
+
+            <div class="controls">
+                <button onclick="addText()">Add Text</button>
+                <button onclick="addVariable()">Add Variable</button>
+                <input type="text" id="textContent" placeholder="Text content" value="Sample Text" style="flex: 1;">
+            </div>
+
+            <button onclick="deleteSelected()" id="deleteBtn" class="delete-btn" style="width: 100%; margin: 10px 0;" disabled>Delete Selected</button>
+
+            <div class="signature-upload">
+                <h3>Signature Images</h3>
+                <input type="file" id="signatureUpload" accept="image/*" multiple>
+                <div class="signature-list" id="signatureList"></div>
+                <button onclick="addSignatureToCanvas()" style="width: 100%; background: #17a2b8; color: white; padding: 8px; border: none; border-radius: 4px; margin-top: 10px;" disabled id="addSignatureBtn">Add Selected Signature to Canvas</button>
+            </div>
+
+            <div id="variableFieldsContainer">
+            </div>
+            <div>
+                <input type="file" id="variableDataUpload" accept=".csv">
+                <button onclick="processCSV()" style="margin-top: 10px;">Process CSV</button>
+                <div id="csvStatus" style="margin-top: 5px; font-size: 12px; color: #666;"></div>
+            </div>
+
+            <div class="controls" style="margin-top: 20px;">
+                <button id="downloadBtn" style="width: 100%; background: #28a745; font-size: 16px; padding: 12px;">Generate All Certificates</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
