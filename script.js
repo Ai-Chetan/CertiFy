@@ -1,8 +1,23 @@
+/**
+ * CertiFy - Professional Certificate Generator
+ * 
+ * Main Functions:
+ * - Template Management: Upload and modify certificate templates
+ * - Text Editing: Add, edit, and position text elements with variable support
+ * - Signature Handling: Upload, position, and resize signature images
+ * - Brush Tool: Paint over unwanted content on templates
+ * - Batch Generation: Generate multiple certificates with CSV data import
+ * - Export: Download certificates as high-quality images
+ */
+
+// Canvas and UI Elements
 const canvas = document.getElementById('certificateCanvas');
 const ctx = canvas.getContext('2d');
 const container = document.getElementById('canvasContainer');
 const editOverlay = document.getElementById('editOverlay');
+const variableFieldsContainer = document.getElementById('variableFieldsContainer');
 
+// Application State
 let backgroundImage = null;
 let modifiedBackground = null;
 let textElements = [];
@@ -18,63 +33,110 @@ let zoomLevel = 1;
 let signatures = [];
 let selectedSignature = null;
 
+// Brush Tool State
 let isBrushing = false;
 let lastBrushX = 0;
 let lastBrushY = 0;
 let sampledColor = '#ffffff';
 let colorSampled = false;
 
-const variableFieldsContainer = document.getElementById('variableFieldsContainer');
+/**
+ * Gets the appropriate font family with fallbacks
+ * @param {string} fontFamily - The selected font family
+ * @returns {string} Font family with appropriate fallbacks
+ */
+function getFontWithFallbacks(fontFamily) {
+    const fontMap = {
+        // Google Fonts with fallbacks
+        'Cinzel': '"Cinzel", "Trajan Pro", "Times New Roman", serif',
+        'Playfair Display': '"Playfair Display", "Georgia", "Times New Roman", serif',
+        'Cormorant Garamond': '"Cormorant Garamond", "Garamond", "Times New Roman", serif',
+        'Libre Baskerville': '"Libre Baskerville", "Baskerville", "Georgia", serif',
+        'Crimson Text': '"Crimson Text", "Times New Roman", "Georgia", serif',
+        'Dancing Script': '"Dancing Script", "Brush Script MT", "Lucida Handwriting", cursive',
+        'Great Vibes': '"Great Vibes", "Edwardian Script ITC", "Monotype Corsiva", cursive',
+        
+        // System fonts with fallbacks
+        'Garamond': '"Garamond", "Times New Roman", serif',
+        'Book Antiqua': '"Book Antiqua", "Palatino Linotype", "Georgia", serif',
+        'Palatino Linotype': '"Palatino Linotype", "Book Antiqua", "Georgia", serif',
+        'Baskerville': '"Baskerville", "Georgia", "Times New Roman", serif',
+        'Century Gothic': '"Century Gothic", "Arial", "Helvetica", sans-serif',
+        'Franklin Gothic Medium': '"Franklin Gothic Medium", "Arial Black", "Arial", sans-serif',
+        'Brush Script MT': '"Brush Script MT", "Dancing Script", "Lucida Handwriting", cursive',
+        'Lucida Handwriting': '"Lucida Handwriting", "Brush Script MT", "Dancing Script", cursive',
+        'Edwardian Script ITC': '"Edwardian Script ITC", "Monotype Corsiva", "Great Vibes", cursive',
+        'Monotype Corsiva': '"Monotype Corsiva", "Edwardian Script ITC", "Great Vibes", cursive',
+        'French Script MT': '"French Script MT", "Edwardian Script ITC", "Monotype Corsiva", cursive',
+        'Old English Text MT': '"Old English Text MT", "Blackletter", "Times New Roman", serif',
+        'Trajan Pro': '"Trajan Pro", "Cinzel", "Times New Roman", serif',
+        'Optima': '"Optima", "Helvetica", "Arial", sans-serif',
+        'Minion Pro': '"Minion Pro", "Georgia", "Times New Roman", serif',
+        'Adobe Caslon Pro': '"Adobe Caslon Pro", "Book Antiqua", "Georgia", serif',
+        'Copperplate Gothic': '"Copperplate Gothic", "Impact", "Arial Black", sans-serif',
+        'Papyrus': '"Papyrus", "fantasy", "Times New Roman", serif',
+        'Algerian': '"Algerian", "Impact", "Arial Black", sans-serif',
+        'Broadway': '"Broadway", "Impact", "Arial Black", sans-serif',
+        'Chiller': '"Chiller", "fantasy", "Times New Roman", serif'
+    };
+    
+    return fontMap[fontFamily] || fontFamily;
+}
 
-// Notification system
-// --- Sidebar Editing UI ---
+/**
+ * Updates the sidebar controls based on the currently selected element
+ * Syncs text input fields with element properties
+ */
 function updateSidebarForSelection() {
-    try {
-        const textInput = document.getElementById('textContent');
-        const fontFamilyInput = document.getElementById('fontFamily');
-        const fontSizeInput = document.getElementById('fontSize');
-        const colorInput = document.getElementById('textColor');
-        
-        if (!textInput || !fontFamilyInput || !fontSizeInput || !colorInput) {
-            console.warn('Some sidebar elements not found');
-            return;
-        }
-        
-        if (selectedElement && selectedElement.type === 'text') {
-            let displayName = selectedElement.isVariable
-                ? (selectedElement.text.match(/\{\{(.+?)\}\}/)?.[1] || 'Variable')
-                : selectedElement.text;
-            
-            textInput.value = selectedElement.isVariable ? displayName : selectedElement.text;
-            fontFamilyInput.value = selectedElement.fontFamily;
-            fontSizeInput.value = selectedElement.fontSize;
-            colorInput.value = selectedElement.color;
-            
-            // Enable delete button
-            const deleteBtn = document.getElementById('deleteBtn');
-            if (deleteBtn) deleteBtn.disabled = false;
-            
-            console.log('Sidebar updated for selected element:', displayName);
-        } else {
-            textInput.value = '';
-            fontFamilyInput.value = 'Arial';
-            fontSizeInput.value = 24;
-            colorInput.value = '#000000';
-            
-            // Disable delete button
-            const deleteBtn = document.getElementById('deleteBtn');
-            if (deleteBtn) deleteBtn.disabled = true;
-        }
-    } catch (error) {
-        console.error('Error in updateSidebarForSelection:', error);
+    const textInput = document.getElementById('textContent');
+    const fontFamilyInput = document.getElementById('fontFamily');
+    const fontSizeInput = document.getElementById('fontSize');
+    const colorInput = document.getElementById('textColor');
+    const sidebar = document.querySelector('.sidebar');
+    let nameDisplay = document.getElementById('selectedNameDisplay');
+    
+    if (!nameDisplay) {
+        nameDisplay = document.createElement('div');
+        nameDisplay.id = 'selectedNameDisplay';
+        nameDisplay.style.fontWeight = 'bold';
+        nameDisplay.style.fontSize = '18px';
+        nameDisplay.style.marginBottom = '10px';
+        sidebar.insertBefore(nameDisplay, sidebar.firstChild);
+    }
+    
+    if (selectedElement && selectedElement.type === 'text') {
+        let displayName = selectedElement.isVariable
+            ? (selectedElement.text.match(/\{\{(.+?)\}\}/)?.[1] || 'Variable')
+            : selectedElement.text;
+        nameDisplay.textContent = displayName;
+        textInput.value = selectedElement.isVariable ? displayName : selectedElement.text;
+        fontFamilyInput.value = selectedElement.fontFamily;
+        fontSizeInput.value = selectedElement.fontSize;
+        colorInput.value = selectedElement.color;
+        textInput.disabled = false;
+        fontFamilyInput.disabled = false;
+        fontSizeInput.disabled = false;
+        colorInput.disabled = false;
+    } else {
+        nameDisplay.textContent = '';
+        textInput.value = '';
+        fontFamilyInput.value = 'Arial';
+        fontSizeInput.value = 24;
+        colorInput.value = '#000000';
+        textInput.disabled = false;
+        fontFamilyInput.disabled = false;
+        fontSizeInput.disabled = false;
+        colorInput.disabled = false;
     }
 }
 
-// Update selected element on sidebar input change
+/**
+ * Event listeners for sidebar text editing controls
+ * Updates selected element properties in real-time
+ */
 document.getElementById('textContent').addEventListener('input', function() {
     if (selectedElement && selectedElement.type === 'text') {
         if (selectedElement.isVariable) {
-            // Update variable name in {{NAME}} format
             let newName = this.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '');
             if (!newName) newName = 'VARIABLE';
             selectedElement.text = `{{${newName}}}`;
@@ -87,24 +149,33 @@ document.getElementById('textContent').addEventListener('input', function() {
         redraw();
     }
 });
+
 document.getElementById('fontFamily').addEventListener('input', function() {
     if (selectedElement && selectedElement.type === 'text') {
         selectedElement.fontFamily = this.value;
         redraw();
     }
 });
+
 document.getElementById('fontSize').addEventListener('input', function() {
     if (selectedElement && selectedElement.type === 'text') {
         selectedElement.fontSize = parseInt(this.value);
         redraw();
     }
 });
+
 document.getElementById('textColor').addEventListener('input', function() {
     if (selectedElement && selectedElement.type === 'text') {
         selectedElement.color = this.value;
         redraw();
     }
 });
+
+/**
+ * Displays notification messages to the user
+ * @param {string} message - Message to display
+ * @param {string} type - Type of notification (info, success, error)
+ */
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
@@ -118,42 +189,49 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+/**
+ * Creates the variable input table for data entry
+ * Automatically generates input fields for all variables in the template
+ */
 function refreshVariableInputs() {
-    console.log('refreshVariableInputs called'); // Debug log
     variableFieldsContainer.innerHTML = "";
-    const variableNames = [...new Set(textElements.filter(e => e.isVariable).map(e => e.text.match(/\{\{(.+?)\}\}/)?.[1]).filter(Boolean))];
-    console.log('Variable names found:', variableNames); // Debug log
+    const variableNames = [...new Set(textElements.filter(e => e.isVariable).map(e => e.text.match(/\{\{(.+?)\}\}/)?.[1]))];
     
     if (variableNames.length > 0) {
-        const heading = document.createElement('h6');
-        heading.textContent = 'Variable Data Entry';
-        heading.className = 'mb-3 text-primary';
+        const heading = document.createElement('h3');
+        heading.textContent = 'Variable Data';
         variableFieldsContainer.appendChild(heading);
 
         const table = document.createElement('table');
-        table.className = 'variable-table table table-sm table-striped';
+        table.className = 'variable-table';
         
         const headerRow = document.createElement('tr');
         headerRow.innerHTML = `<th>Row</th>` + variableNames.map(v => `<th>${v}</th>`).join('');
         table.appendChild(headerRow);
 
-        // Start with 1 row initially
         addTableRow(table, variableNames, 0);
         variableFieldsContainer.appendChild(table);
-        console.log('Variable table created and added'); // Debug log
-    } else {
-        console.log('No variables found, table not created'); // Debug log
     }
 }
 
+/**
+ * Adds a new row to the variable input table
+ * @param {HTMLTableElement} table - The table to add the row to
+ * @param {Array} variableNames - List of variable names
+ * @param {number} rowIndex - Index of the row
+ */
 function addTableRow(table, variableNames, rowIndex) {
     const row = document.createElement('tr');
     row.innerHTML = `<td>${rowIndex + 1}</td>` + variableNames.map(v => 
-        `<td><input type="text" class="form-control form-control-sm" data-var="${v}" data-row="${rowIndex}" oninput="checkAddNewRow()"></td>`
+        `<td><input type="text" data-var="${v}" data-row="${rowIndex}" oninput="checkAddNewRow()"></td>`
     ).join('');
     table.appendChild(row);
 }
 
+/**
+ * Checks if a new row should be added to the variable table
+ * Automatically adds new rows when the last row has data
+ */
 function checkAddNewRow() {
     const table = variableFieldsContainer.querySelector('table');
     if (!table) return;
@@ -161,7 +239,6 @@ function checkAddNewRow() {
     const inputs = Array.from(table.querySelectorAll('input'));
     const variableNames = [...new Set(textElements.filter(e => e.isVariable).map(e => e.text.match(/\{\{(.+?)\}\}/)?.[1]))];
     
-    // Check if last row has any data
     const maxRow = Math.max(...inputs.map(inp => parseInt(inp.dataset.row)));
     const lastRowInputs = inputs.filter(inp => parseInt(inp.dataset.row) === maxRow);
     const lastRowHasData = lastRowInputs.some(inp => inp.value.trim() !== '');
@@ -171,7 +248,9 @@ function checkAddNewRow() {
     }
 }
 
-// Signature handling
+/**
+ * Handles signature image upload and processing
+ */
 document.getElementById('signatureUpload').addEventListener('change', function(e) {
     Array.from(e.target.files).forEach(file => {
         const reader = new FileReader();
@@ -193,6 +272,9 @@ document.getElementById('signatureUpload').addEventListener('change', function(e
     });
 });
 
+/**
+ * Updates the signature list display in the UI
+ */
 function updateSignatureList() {
     const list = document.getElementById('signatureList');
     list.innerHTML = signatures.map(sig => `
@@ -208,12 +290,21 @@ function updateSignatureList() {
     }
 }
 
+/**
+ * Selects a signature for use
+ * @param {string} id - Signature ID
+ */
 function selectSignature(id) {
     selectedSignature = signatures.find(sig => sig.id == id);
     updateSignatureList();
     document.getElementById('addSignatureBtn').disabled = !selectedSignature;
 }
 
+/**
+ * Deletes a signature from the list
+ * @param {string} id - Signature ID
+ * @param {Event} event - Click event
+ */
 function deleteSignature(id, event) {
     event.stopPropagation();
     signatures = signatures.filter(sig => sig.id != id);
@@ -225,6 +316,9 @@ function deleteSignature(id, event) {
     showNotification('Signature deleted', 'info');
 }
 
+/**
+ * Adds the selected signature to the canvas
+ */
 function addSignatureToCanvas() {
     if (!selectedSignature) {
         showNotification('Please select a signature first', 'error');
@@ -249,14 +343,16 @@ function addSignatureToCanvas() {
     showNotification('Signature added to canvas', 'success');
 }
 
-// Zoom functionality
+/**
+ * Zoom control functions
+ */
 function zoomIn() {
-    zoomLevel = Math.min(zoomLevel + 0.1, 3);
+    zoomLevel = Math.min(zoomLevel * 1.2, 3);
     updateZoom();
 }
 
 function zoomOut() {
-    zoomLevel = Math.max(zoomLevel - 0.1, 0.3);
+    zoomLevel = Math.max(zoomLevel / 1.2, 0.5);
     updateZoom();
 }
 
@@ -265,22 +361,20 @@ function resetZoom() {
     updateZoom();
 }
 
+/**
+ * Updates the canvas zoom level and container size
+ */
 function updateZoom() {
     canvas.style.transform = `scale(${zoomLevel})`;
     canvas.style.transformOrigin = 'top left';
-    
-    // Update container size to accommodate the scaled canvas
-    const scaledWidth = canvas.width * zoomLevel;
-    const scaledHeight = canvas.height * zoomLevel;
-    
-    container.style.width = scaledWidth + 'px';
-    container.style.height = scaledHeight + 'px';
-    
-    // Update zoom level display
+    container.style.width = (canvas.width * zoomLevel) + 'px';
+    container.style.height = (canvas.height * zoomLevel) + 'px';
     document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
 }
 
-// Mode switching
+/**
+ * Handles editing mode changes
+ */
 document.querySelectorAll('input[name="mode"]').forEach(radio => {
     radio.addEventListener('change', function() {
         currentMode = this.value;
@@ -294,6 +388,9 @@ document.getElementById('brushSize').addEventListener('input', function(e) {
     document.getElementById('brushSizeDisplay').textContent = e.target.value + 'px';
 });
 
+/**
+ * Updates the cursor based on the current mode
+ */
 function updateCursor() {
     if (currentMode === 'brush') {
         canvas.style.cursor = 'crosshair';
@@ -304,7 +401,9 @@ function updateCursor() {
     }
 }
 
-// Template upload
+/**
+ * Handles template image upload
+ */
 document.getElementById('templateUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -325,10 +424,6 @@ document.getElementById('templateUpload').addEventListener('change', function(e)
                 updateZoom();
                 redraw();
                 showNotification('Template uploaded successfully!', 'success');
-                
-                // Hide upload card and show manage card
-                document.getElementById('templateUploadCard').style.display = 'none';
-                document.getElementById('templateManageCard').style.display = 'block';
             };
             img.src = event.target.result;
         };
@@ -336,164 +431,69 @@ document.getElementById('templateUpload').addEventListener('change', function(e)
     }
 });
 
-// Remove template function
-function removeTemplate() {
-    backgroundImage = null;
-    modifiedBackground = null;
-    textElements = [];
-    imageElements = [];
-    selectedElement = null;
-    brushStrokes = [];
-    
-    // Reset canvas
-    canvas.width = 800;
-    canvas.height = 600;
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#666';
-    ctx.font = '20px Arial';
-    ctx.fillText('Upload a template to get started', 50, 50);
-    
-    // Show upload card and hide manage card
-    document.getElementById('templateUploadCard').style.display = 'block';
-    document.getElementById('templateManageCard').style.display = 'none';
-    
-    // Clear file input
-    document.getElementById('templateUpload').value = '';
-    
-    // Clear variable fields
-    refreshVariableInputs();
-    updateSidebarForSelection();
-    
-    showNotification('Template removed successfully!', 'info');
-}
-
-// Show help modal function
-function showHelpModal() {
-    const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
-    helpModal.show();
-}
-
-// Theme toggle functionality
-let isDarkMode = false;
-
-function toggleTheme() {
-    isDarkMode = !isDarkMode;
-    const body = document.body;
-    const themeIcon = document.getElementById('themeIcon');
-    const themeText = document.getElementById('themeText');
-    
-    if (isDarkMode) {
-        body.classList.add('dark-theme');
-        themeIcon.className = 'bi bi-sun-fill';
-        themeText.textContent = 'Light';
-        localStorage.setItem('theme', 'dark');
-    } else {
-        body.classList.remove('dark-theme');
-        themeIcon.className = 'bi bi-moon-fill';
-        themeText.textContent = 'Dark';
-        localStorage.setItem('theme', 'light');
-    }
-}
-
-// Initialize theme on page load
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        isDarkMode = false; // Set to false so toggleTheme() will make it true
-        toggleTheme();
-    }
-}
-
-// Call initialize theme when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeTheme);
-
+/**
+ * Adds a text element to the canvas
+ */
 function addText() {
-    try {
-        console.log('addText function called'); // Debug log
-        const text = document.getElementById('textContent').value || 'Sample Text';
-        const fontFamily = document.getElementById('fontFamily').value;
-        const fontSize = document.getElementById('fontSize').value;
-        const color = document.getElementById('textColor').value;
+    const text = document.getElementById('textContent').value || 'Sample Text';
+    const fontFamily = document.getElementById('fontFamily').value;
+    const fontSize = document.getElementById('fontSize').value;
+    const color = document.getElementById('textColor').value;
 
-        const element = {
-            id: Date.now(),
-            type: 'text',
-            text: text,
-            x: 100 + textElements.length * 20,
-            y: 100 + textElements.length * 30,
-            fontFamily: fontFamily,
-            fontSize: parseInt(fontSize),
-            color: color,
-            isVariable: false
-        };
+    const element = {
+        id: Date.now(),
+        type: 'text',
+        text: text,
+        x: 100 + textElements.length * 20,
+        y: 100 + textElements.length * 30,
+        fontFamily: fontFamily,
+        fontSize: parseInt(fontSize),
+        color: color,
+        isVariable: false
+    };
 
-        console.log('Adding text element:', element); // Debug log
-        textElements.push(element);
-        selectedElement = element;
-        updateSidebarForSelection();
-        
-        // Force immediate redraw with a small delay to ensure DOM is ready
-        setTimeout(() => {
-            console.log('Calling redraw from setTimeout'); // Debug log
-            redraw();
-        }, 10);
-        
-        showNotification('Text added', 'success');
-        console.log('Text element added:', element); // Debug log
-    } catch (error) {
-        console.error('Error in addText:', error);
-        showNotification('Error adding text: ' + error.message, 'error');
-    }
+    textElements.push(element);
+    selectedElement = element;
+    updateSidebarForSelection();
+    redraw();
+    showNotification('Text added', 'success');
 }
 
+/**
+ * Adds a variable element to the canvas
+ */
 function addVariable() {
-    try {
-        console.log('addVariable function called'); // Debug log
-        // Use the Sample Text as the variable name, no prompt
-        let varName = document.getElementById('textContent').value || 'Sample Text';
-        varName = varName.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '');
-        if (!varName) varName = 'VARIABLE';
+    let varName = document.getElementById('textContent').value || 'Sample Text';
+    varName = varName.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '');
+    if (!varName) varName = 'VARIABLE';
 
-        const fontFamily = document.getElementById('fontFamily').value;
-        const fontSize = document.getElementById('fontSize').value;
-        const color = document.getElementById('textColor').value;
+    const fontFamily = document.getElementById('fontFamily').value;
+    const fontSize = document.getElementById('fontSize').value;
+    const color = document.getElementById('textColor').value;
 
-        const element = {
-            id: Date.now(),
-            type: 'text',
-            text: `{{${varName}}}`,
-            x: 150 + textElements.length * 20,
-            y: 150 + textElements.length * 30,
-            fontFamily: fontFamily,
-            fontSize: parseInt(fontSize),
-            color: color,
-            isVariable: true
-        };
+    const element = {
+        id: Date.now(),
+        type: 'text',
+        text: `{{${varName}}}`,
+        x: 150 + textElements.length * 20,
+        y: 150 + textElements.length * 30,
+        fontFamily: fontFamily,
+        fontSize: parseInt(fontSize),
+        color: color,
+        isVariable: true
+    };
 
-        console.log('Adding variable element:', element); // Debug log
-        textElements.push(element);
-        selectedElement = element;
-        updateSidebarForSelection();
-        refreshVariableInputs(); // This should create the table
-        
-        // Force immediate redraw with a small delay to ensure DOM is ready
-        setTimeout(() => {
-            console.log('Calling redraw from setTimeout in addVariable'); // Debug log
-            redraw();
-        }, 10);
-        
-        showNotification(`Variable "${varName}" added`, 'success');
-        console.log('Variable element added:', element); // Debug log
-        console.log('Variable table should be refreshed'); // Debug log
-    } catch (error) {
-        console.error('Error in addVariable:', error);
-        showNotification('Error adding variable: ' + error.message, 'error');
-    }
+    textElements.push(element);
+    selectedElement = element;
+    updateSidebarForSelection();
+    refreshVariableInputs();
+    redraw();
+    showNotification(`Variable "${varName}" added`, 'success');
 }
 
+/**
+ * Deletes the currently selected element
+ */
 function deleteSelected() {
     if (selectedElement) {
         if (selectedElement.type === 'text') {
@@ -509,69 +509,67 @@ function deleteSelected() {
     }
 }
 
+/**
+ * Redraws the entire canvas with all elements
+ */
 function redraw() {
-    console.log('Redraw called, textElements count:', textElements.length); // Debug log
-    
-    // Clear the entire canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw background
     if (modifiedBackground) {
         ctx.drawImage(modifiedBackground, 0, 0);
     } else if (backgroundImage) {
         ctx.drawImage(backgroundImage, 0, 0);
-    } else {
-        // If no background, provide a clean white canvas
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Draw text elements - ensure they're always visible
-    textElements.forEach((element, index) => {
-        console.log(`Drawing text element ${index}:`, element.text, 'at', element.x, element.y); // Debug log
-        
-        // Set text properties
-        ctx.font = `${element.fontSize}px ${element.fontFamily}`;
+    textElements.forEach(element => {
+        const fontWithFallbacks = getFontWithFallbacks(element.fontFamily);
+        ctx.font = `${element.fontSize}px ${fontWithFallbacks}`;
         ctx.fillStyle = element.color;
         ctx.textBaseline = 'top';
-        ctx.textAlign = 'left';
+        
+        // Set text alignment based on whether it's a variable
+        if (element.isVariable) {
+            ctx.textAlign = 'center';
+        } else {
+            ctx.textAlign = 'left';
+        }
 
-        // Highlight selected element
         if (element === selectedElement) {
             const metrics = ctx.measureText(element.text);
             ctx.save();
             ctx.fillStyle = 'rgba(0, 124, 186, 0.2)';
-            ctx.fillRect(element.x - 2, element.y - 2, metrics.width + 4, element.fontSize + 4);
+            if (element.isVariable) {
+                ctx.fillRect(element.x - metrics.width/2 - 2, element.y - 2, metrics.width + 4, element.fontSize + 4);
+            } else {
+                ctx.fillRect(element.x - 2, element.y - 2, metrics.width + 4, element.fontSize + 4);
+            }
             ctx.restore();
-            ctx.fillStyle = element.color; // Restore text color
+            ctx.fillStyle = element.color;
         }
 
-        // Highlight variables with yellow background
         if (element.isVariable) {
             const metrics = ctx.measureText(element.text);
             ctx.save();
             ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-            ctx.fillRect(element.x - 2, element.y - 2, metrics.width + 4, element.fontSize + 4);
+            ctx.fillRect(element.x - metrics.width/2 - 2, element.y - 2, metrics.width + 4, element.fontSize + 4);
             ctx.restore();
-            ctx.fillStyle = element.color; // Restore text color
+            ctx.fillStyle = element.color;
         }
 
-        // Draw the actual text
         ctx.fillText(element.text, element.x, element.y);
+        
+        // Reset text alignment to default
+        ctx.textAlign = 'left';
     });
 
-    // Draw image elements
     imageElements.forEach(element => {
         if (element === selectedElement) {
             ctx.save();
-            // Selection highlight
             ctx.fillStyle = 'rgba(0, 124, 186, 0.2)';
             ctx.fillRect(element.x - 4, element.y - 4, element.width + 8, element.height + 8);
             
-            // Larger resize handles (15px instead of 10px)
             const handleSize = 15;
             
-            // Bottom-right handle
             ctx.fillStyle = '#007bff';
             ctx.fillRect(
                 element.x + element.width - handleSize/2, 
@@ -580,7 +578,6 @@ function redraw() {
                 handleSize
             );
             
-            // Top-right handle
             ctx.fillRect(
                 element.x + element.width - handleSize/2, 
                 element.y - handleSize/2, 
@@ -588,7 +585,6 @@ function redraw() {
                 handleSize
             );
             
-            // Bottom-left handle
             ctx.fillRect(
                 element.x - handleSize/2, 
                 element.y + element.height - handleSize/2, 
@@ -598,10 +594,20 @@ function redraw() {
             ctx.restore();
         }
         
-        ctx.drawImage(element.image, element.x, element.y, element.width, element.height);
+        if (element.modifiedImage) {
+            ctx.drawImage(element.modifiedImage, element.x, element.y);
+        } else {
+            ctx.drawImage(element.image, element.x, element.y, element.width, element.height);
+        }
     });
 }
 
+/**
+ * Samples color from the background at specified coordinates
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ * @returns {string} RGB color value
+ */
 function sampleColorAt(x, y) {
     if (!backgroundImage) return '#ffffff';
     const tempCanvas = document.createElement('canvas');
@@ -618,6 +624,9 @@ function sampleColorAt(x, y) {
     }
 }
 
+/**
+ * Mouse event handlers for canvas interaction
+ */
 canvas.addEventListener('mousedown', function(e) {
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoomLevel;
@@ -638,7 +647,6 @@ canvas.addEventListener('mousedown', function(e) {
 
     if (currentMode === 'edit') {
         if (selectedSignature) {
-            // Add signature image
             const element = {
                 id: Date.now(),
                 type: 'image',
@@ -659,20 +667,16 @@ canvas.addEventListener('mousedown', function(e) {
     }
 
     if (currentMode === 'move' && selectedElement?.type === 'image') {
-        const handleSize = 15; // Should match the size used in redraw()
+        const handleSize = 15;
         
-        // Check resize handles first with larger detection area
         if (x >= selectedElement.x + selectedElement.width - handleSize && 
             y >= selectedElement.y + selectedElement.height - handleSize) {
-            // Bottom-right handle
             isResizing = 'br';
         } else if (x >= selectedElement.x + selectedElement.width - handleSize && 
                  y <= selectedElement.y + handleSize) {
-            // Top-right handle
             isResizing = 'tr';
         } else if (x <= selectedElement.x + handleSize && 
                  y >= selectedElement.y + selectedElement.height - handleSize) {
-            // Bottom-left handle
             isResizing = 'bl';
         } else {
             isDragging = true;
@@ -683,23 +687,17 @@ canvas.addEventListener('mousedown', function(e) {
     if (currentMode === 'move') {
         selectedElement = null;
         
-        // Check image elements first
         for (let i = imageElements.length - 1; i >= 0; i--) {
             const element = imageElements[i];
-            // Handle selection/dragging
             if (x >= element.x && x <= element.x + element.width &&
                 y >= element.y && y <= element.y + element.height) {
                 selectedElement = element;
                 
-                // Check if mouse is on a resize handle
                 if (x >= element.x + element.width - 10 && y >= element.y + element.height - 10) {
-                    // Bottom-right resize handle
                     isResizing = 'br';
                 } else if (x >= element.x + element.width - 10 && y <= element.y + 10) {
-                    // Top-right resize handle
                     isResizing = 'tr';
                 } else if (x <= element.x + 10 && y >= element.y + element.height - 10) {
-                    // Bottom-left resize handle
                     isResizing = 'bl';
                 } else {
                     isDragging = true;
@@ -713,13 +711,22 @@ canvas.addEventListener('mousedown', function(e) {
             }
         }
         
-        // Check text elements if no image was selected
         if (!selectedElement) {
             for (let i = textElements.length - 1; i >= 0; i--) {
                 const element = textElements[i];
-                ctx.font = `${element.fontSize}px ${element.fontFamily}`;
+                const fontWithFallbacks = getFontWithFallbacks(element.fontFamily);
+                ctx.font = `${element.fontSize}px ${fontWithFallbacks}`;
                 const metrics = ctx.measureText(element.text);
-                if (x >= element.x && x <= element.x + metrics.width &&
+                
+                let textX = element.x;
+                let textWidth = metrics.width;
+                
+                // Adjust hit detection for center-aligned variable text
+                if (element.isVariable) {
+                    textX = element.x - metrics.width/2;
+                }
+                
+                if (x >= textX && x <= textX + textWidth &&
                     y >= element.y && y <= element.y + element.fontSize) {
                     selectedElement = element;
                     isDragging = true;
@@ -747,6 +754,7 @@ canvas.addEventListener('mousemove', function(e) {
         brush(x, y);
         return;
     }
+    
     if (currentMode === 'move' && selectedElement?.type === 'image') {
         const handleSize = 15;
         
@@ -776,13 +784,11 @@ canvas.addEventListener('mousemove', function(e) {
             redraw();
         } else if (isResizing) {
             if (isResizing === 'br') {
-                // Bottom-right handle - preserve aspect ratio
                 const aspectRatio = selectedElement.image.width / selectedElement.image.height;
                 const newWidth = Math.max(20, x - selectedElement.x);
                 selectedElement.width = newWidth;
                 selectedElement.height = newWidth / aspectRatio;
             } else if (isResizing === 'tr') {
-                // Top-right handle - preserve aspect ratio
                 const aspectRatio = selectedElement.image.width / selectedElement.image.height;
                 const newWidth = Math.max(20, x - selectedElement.x);
                 selectedElement.width = newWidth;
@@ -790,7 +796,6 @@ canvas.addEventListener('mousemove', function(e) {
                 selectedElement.y = selectedElement.y + selectedElement.height - newHeight;
                 selectedElement.height = newHeight;
             } else if (isResizing === 'bl') {
-                // Bottom-left handle
                 const aspectRatio = selectedElement.image.width / selectedElement.image.height;
                 const newHeight = Math.max(20, y - selectedElement.y);
                 selectedElement.height = newHeight;
@@ -812,6 +817,9 @@ canvas.addEventListener('mouseup', function() {
     isResizing = false;
 });
 
+/**
+ * Brush tool functions
+ */
 function startBrushStroke() {
     brushStrokes.push([]);
 }
@@ -835,6 +843,41 @@ function brush(x, y) {
         modCtx.stroke();
     }
 
+    imageElements.forEach(element => {
+        if (element.type === 'image') {
+            if (x >= element.x && x <= element.x + element.width &&
+                y >= element.y && y <= element.y + element.height) {
+                
+                if (!element.modifiedImage) {
+                    element.modifiedImage = document.createElement('canvas');
+                    element.modifiedImage.width = element.width;
+                    element.modifiedImage.height = element.height;
+                    const modImgCtx = element.modifiedImage.getContext('2d');
+                    modImgCtx.drawImage(element.image, 0, 0, element.width, element.height);
+                }
+                
+                const modImgCtx = element.modifiedImage.getContext('2d');
+                modImgCtx.globalCompositeOperation = 'destination-out';
+                modImgCtx.beginPath();
+                const localX = x - element.x;
+                const localY = y - element.y;
+                modImgCtx.arc(localX, localY, brushSize / 2, 0, 2 * Math.PI);
+                modImgCtx.fill();
+                
+                if (lastBrushX !== null && lastBrushY !== null) {
+                    const lastLocalX = lastBrushX - element.x;
+                    const lastLocalY = lastBrushY - element.y;
+                    modImgCtx.lineWidth = brushSize;
+                    modImgCtx.lineCap = 'round';
+                    modImgCtx.beginPath();
+                    modImgCtx.moveTo(lastLocalX, lastLocalY);
+                    modImgCtx.lineTo(localX, localY);
+                    modImgCtx.stroke();
+                }
+            }
+        }
+    });
+
     lastBrushX = x;
     lastBrushY = y;
     if (brushStrokes.length > 0) {
@@ -844,9 +887,12 @@ function brush(x, y) {
 }
 
 function endBrushStroke() {
-    // Logic to handle the end of a brush stroke
+    // Logic for ending a brush stroke
 }
 
+/**
+ * Undoes the last brush stroke
+ */
 function undoLastBrush() {
     if (brushStrokes.length > 0) {
         brushStrokes.pop();
@@ -878,6 +924,11 @@ function undoLastBrush() {
     }
 }
 
+/**
+ * Shows the edit dialog for adding text at a specific position
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ */
 function showEditDialog(x, y) {
     editingPosition = { x: x, y: y };
     const rect = canvas.getBoundingClientRect();
@@ -888,6 +939,9 @@ function showEditDialog(x, y) {
     document.getElementById('editInput').focus();
 }
 
+/**
+ * Confirms adding text from the edit dialog
+ */
 function confirmEdit() {
     const newText = document.getElementById('editInput').value.trim();
     if (newText && editingPosition) {
@@ -909,12 +963,14 @@ function confirmEdit() {
     cancelEdit();
 }
 
+/**
+ * Creates a variable from the edit dialog
+ */
 function makeVariable() {
     if (editingPosition) {
         let varName = prompt("Enter variable name (e.g., NAME, DATE):", "NAME");
         if (!varName) return;
         
-        // Validate variable name
         varName = varName.toUpperCase().replace(/[^A-Z0-9_]/g, '');
         if (!varName) {
             showNotification('Invalid variable name', 'error');
@@ -940,29 +996,31 @@ function makeVariable() {
     cancelEdit();
 }
 
+/**
+ * Cancels the edit dialog
+ */
 function cancelEdit() {
     editOverlay.style.display = 'none';
     editingPosition = null;
 }
 
-function generateCertificates() {
-    console.log('generateCertificates called'); // Debug log
+/**
+ * Generates multiple certificates with variable data and downloads them as a zip file
+ */
+async function generateCertificates() {
     const variableNames = [...new Set(textElements.filter(e => e.isVariable).map(e => e.text.match(/\{\{(.+?)\}\}/)?.[1]))];
-    console.log('Variable names for generation:', variableNames); // Debug log
     
     if (variableNames.length === 0) {
         showNotification("Please add at least one variable field.", 'error');
         return;
     }
     
-    // Allow generation even without background image
-    // if (!backgroundImage && !modifiedBackground) {
-    //     showNotification("Please upload a template first.", 'error');
-    //     return;
-    // }
+    if (!backgroundImage && !modifiedBackground) {
+        showNotification("Please upload a template first.", 'error');
+        return;
+    }
     
     const tableInputs = Array.from(variableFieldsContainer.querySelectorAll('input'));
-    console.log('Table inputs found:', tableInputs.length); // Debug log
     const rowsData = [];
     const maxRow = Math.max(...tableInputs.map(inp => parseInt(inp.dataset.row))) + 1;
     
@@ -984,21 +1042,49 @@ function generateCertificates() {
     
     showNotification(`Generating ${rowsData.length} certificates...`, 'info');
     
-    rowsData.forEach((rowData, index) => {
-        setTimeout(() => {
-            generateSingleCertificateWithVars(rowData);
-            if (index === rowsData.length - 1) {
-                showNotification(`All ${rowsData.length} certificates generated successfully!`, 'success');
-            }
-        }, index * 100);
-    });
+    // Create a new JSZip instance
+    const zip = new JSZip();
+    
+    try {
+        // Generate all certificates
+        for (let i = 0; i < rowsData.length; i++) {
+            const rowData = rowsData[i];
+            const certificateBlob = await generateSingleCertificateAsBlob(rowData);
+            const fileName = Object.values(rowData).filter(Boolean).join('_') || `certificate_${i + 1}`;
+            const sanitizedFileName = `${fileName.replace(/[^a-zA-Z0-9]/g, '_')}.jpg`;
+            
+            // Add the certificate to the zip
+            zip.file(sanitizedFileName, certificateBlob);
+            
+            // Update progress
+            showNotification(`Generated certificate ${i + 1} of ${rowsData.length}...`, 'info');
+        }
+        
+        // Generate and download the zip file
+        const content = await zip.generateAsync({type:"blob"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `certificates_${new Date().toISOString().slice(0,10)}.zip`;
+        link.click();
+        
+        showNotification(`All ${rowsData.length} certificates generated and downloaded as zip!`, 'success');
+        
+    } catch (error) {
+        console.error('Error generating certificates:', error);
+        showNotification('Error generating certificates. Please try again.', 'error');
+    }
 }
 
-function generateSingleCertificateWithVars(vars) {
-    // Use the background image's native resolution if available
+/**
+ * Generates a single certificate with variable data and returns it as a blob
+ * @param {Object} vars - Variable data for replacement
+ * @returns {Blob} Certificate image as blob
+ */
+function generateSingleCertificateAsBlob(vars) {
     let exportWidth = canvas.width;
     let exportHeight = canvas.height;
     let bgSource = null;
+    
     if (modifiedBackground) {
         exportWidth = modifiedBackground.width;
         exportHeight = modifiedBackground.height;
@@ -1008,13 +1094,13 @@ function generateSingleCertificateWithVars(vars) {
         exportHeight = backgroundImage.height;
         bgSource = backgroundImage;
     }
+    
     const scaleFactor = exportWidth / canvas.width;
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = exportWidth;
     tempCanvas.height = exportHeight;
     const tempCtx = tempCanvas.getContext('2d');
 
-    // Draw background
     if (bgSource) {
         tempCtx.drawImage(bgSource, 0, 0, exportWidth, exportHeight);
     } else {
@@ -1022,12 +1108,20 @@ function generateSingleCertificateWithVars(vars) {
         tempCtx.fillRect(0, 0, exportWidth, exportHeight);
     }
 
-    // Draw text elements scaled
     textElements.forEach(element => {
         tempCtx.save();
-        tempCtx.font = `${element.fontSize * scaleFactor}px ${element.fontFamily}`;
+        const fontWithFallbacks = getFontWithFallbacks(element.fontFamily);
+        tempCtx.font = `${element.fontSize * scaleFactor}px ${fontWithFallbacks}`;
         tempCtx.fillStyle = element.color;
         tempCtx.textBaseline = 'top';
+        
+        // Set text alignment based on whether it's a variable
+        if (element.isVariable) {
+            tempCtx.textAlign = 'center';
+        } else {
+            tempCtx.textAlign = 'left';
+        }
+        
         let text = element.text;
         if (element.isVariable) {
             const match = element.text.match(/\{\{(.+?)\}\}/);
@@ -1039,11 +1133,89 @@ function generateSingleCertificateWithVars(vars) {
         tempCtx.restore();
     });
 
-    // Draw image elements scaled
     imageElements.forEach(element => {
         tempCtx.save();
+        const sourceImage = element.modifiedImage || element.image;
         tempCtx.drawImage(
-            element.image,
+            sourceImage,
+            element.x * scaleFactor,
+            element.y * scaleFactor,
+            element.width * scaleFactor,
+            element.height * scaleFactor
+        );
+        tempCtx.restore();
+    });
+
+    // Convert canvas to blob
+    return new Promise((resolve) => {
+        tempCanvas.toBlob((blob) => {
+            resolve(blob);
+        }, 'image/jpeg', 0.95);
+    });
+}
+
+/**
+ * Generates a single certificate with variable data
+ * @param {Object} vars - Variable data for replacement
+ */
+function generateSingleCertificateWithVars(vars) {
+    let exportWidth = canvas.width;
+    let exportHeight = canvas.height;
+    let bgSource = null;
+    
+    if (modifiedBackground) {
+        exportWidth = modifiedBackground.width;
+        exportHeight = modifiedBackground.height;
+        bgSource = modifiedBackground;
+    } else if (backgroundImage) {
+        exportWidth = backgroundImage.width;
+        exportHeight = backgroundImage.height;
+        bgSource = backgroundImage;
+    }
+    
+    const scaleFactor = exportWidth / canvas.width;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = exportWidth;
+    tempCanvas.height = exportHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    if (bgSource) {
+        tempCtx.drawImage(bgSource, 0, 0, exportWidth, exportHeight);
+    } else {
+        tempCtx.fillStyle = '#fff';
+        tempCtx.fillRect(0, 0, exportWidth, exportHeight);
+    }
+
+    textElements.forEach(element => {
+        tempCtx.save();
+        const fontWithFallbacks = getFontWithFallbacks(element.fontFamily);
+        tempCtx.font = `${element.fontSize * scaleFactor}px ${fontWithFallbacks}`;
+        tempCtx.fillStyle = element.color;
+        tempCtx.textBaseline = 'top';
+        
+        // Set text alignment based on whether it's a variable
+        if (element.isVariable) {
+            tempCtx.textAlign = 'center';
+        } else {
+            tempCtx.textAlign = 'left';
+        }
+        
+        let text = element.text;
+        if (element.isVariable) {
+            const match = element.text.match(/\{\{(.+?)\}\}/);
+            if (match && vars[match[1]] !== undefined) {
+                text = vars[match[1]];
+            }
+        }
+        tempCtx.fillText(text, element.x * scaleFactor, element.y * scaleFactor);
+        tempCtx.restore();
+    });
+
+    imageElements.forEach(element => {
+        tempCtx.save();
+        const sourceImage = element.modifiedImage || element.image;
+        tempCtx.drawImage(
+            sourceImage,
             element.x * scaleFactor,
             element.y * scaleFactor,
             element.width * scaleFactor,
@@ -1060,11 +1232,14 @@ function generateSingleCertificateWithVars(vars) {
     a.click();
 }
 
+/**
+ * Downloads the current canvas as an image
+ */
 function downloadCanvasImage() {
-    // Use the background image's native resolution if available
     let exportWidth = canvas.width;
     let exportHeight = canvas.height;
     let bgSource = null;
+    
     if (modifiedBackground) {
         exportWidth = modifiedBackground.width;
         exportHeight = modifiedBackground.height;
@@ -1074,13 +1249,13 @@ function downloadCanvasImage() {
         exportHeight = backgroundImage.height;
         bgSource = backgroundImage;
     }
+    
     const scaleFactor = exportWidth / canvas.width;
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width = exportWidth;
     exportCanvas.height = exportHeight;
     const exportCtx = exportCanvas.getContext('2d');
 
-    // Draw background
     if (bgSource) {
         exportCtx.drawImage(bgSource, 0, 0, exportWidth, exportHeight);
     } else {
@@ -1088,20 +1263,29 @@ function downloadCanvasImage() {
         exportCtx.fillRect(0, 0, exportWidth, exportHeight);
     }
 
-    // Draw text elements scaled
     textElements.forEach(el => {
         exportCtx.save();
-        exportCtx.font = `${el.fontSize * scaleFactor}px ${el.fontFamily}`;
+        const fontWithFallbacks = getFontWithFallbacks(el.fontFamily);
+        exportCtx.font = `${el.fontSize * scaleFactor}px ${fontWithFallbacks}`;
         exportCtx.fillStyle = el.color;
         exportCtx.textBaseline = 'top';
+        
+        // Set text alignment based on whether it's a variable
+        if (el.isVariable) {
+            exportCtx.textAlign = 'center';
+        } else {
+            exportCtx.textAlign = 'left';
+        }
+        
         exportCtx.fillText(el.text, el.x * scaleFactor, el.y * scaleFactor);
         exportCtx.restore();
     });
-    // Draw image elements scaled
+    
     imageElements.forEach(el => {
         exportCtx.save();
+        const sourceImage = el.modifiedImage || el.image;
         exportCtx.drawImage(
-            el.image,
+            sourceImage,
             el.x * scaleFactor,
             el.y * scaleFactor,
             el.width * scaleFactor,
@@ -1116,8 +1300,9 @@ function downloadCanvasImage() {
     link.click();
 }
 
-
-// Keyboard shortcuts
+/**
+ * Keyboard event handlers
+ */
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Delete' && selectedElement) {
         deleteSelected();
@@ -1127,13 +1312,15 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Enter key in edit input
 document.getElementById('editInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         confirmEdit();
     }
 });
 
+/**
+ * CSV file processing functionality
+ */
 document.getElementById('variableDataUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -1145,6 +1332,9 @@ document.getElementById('variableDataUpload').addEventListener('change', functio
     }
 });
 
+/**
+ * Processes uploaded CSV files and populates variable data
+ */
 function processCSV() {
     const fileInput = document.getElementById('variableDataUpload');
     const statusElement = document.getElementById('csvStatus');
@@ -1184,38 +1374,32 @@ function processCSV() {
                 return;
             }
 
-            // Clear existing variable fields
             variableFieldsContainer.innerHTML = "";
-            const heading = document.createElement('h6');
-            heading.textContent = 'CSV Data Imported';
-            heading.className = 'mb-3 text-success';
+            const heading = document.createElement('h3');
+            heading.textContent = 'Variable Data';
             variableFieldsContainer.appendChild(heading);
 
             const table = document.createElement('table');
-            table.className = 'variable-table table table-sm table-striped';
+            table.className = 'variable-table';
 
-            // Create header row
             const headerRow = document.createElement('tr');
             headerRow.innerHTML = `<th>Row</th>` + 
                 variableNames.map(v => `<th>${v}</th>`).join('');
             table.appendChild(headerRow);
 
-            // Process each data row
             rows.forEach((rowData, index) => {
-                // Add data row
                 const dataRow = document.createElement('tr');
                 dataRow.innerHTML = `<td>${index + 1}</td>` + 
                     variableNames.map((v, i) => 
-                        `<td><input type="text" class="form-control form-control-sm" data-var="${v}" data-row="${index}" value="${rowData[i] || ''}"></td>`
+                        `<td><input type="text" data-var="${v}" data-row="${index}" value="${rowData[i] || ''}"></td>`
                     ).join('');
                 table.appendChild(dataRow);
             });
 
-            // Add one final blank row at the end
             const finalBlankRow = document.createElement('tr');
             finalBlankRow.innerHTML = `<td>${rows.length + 1}</td>` + 
                 variableNames.map((v, i) => 
-                    `<td><input type="text" class="form-control form-control-sm" data-var="${v}" data-row="${rows.length}" 
+                    `<td><input type="text" data-var="${v}" data-row="${rows.length}" 
                          placeholder="Optional" oninput="checkAddNewRow()"></td>`
                 ).join('');
             table.appendChild(finalBlankRow);
@@ -1242,42 +1426,36 @@ function processCSV() {
     reader.readAsText(file);
 }
 
-const style = document.createElement('style');
-style.textContent = `
-    canvas.resize-bottom-right { cursor: nwse-resize; }
-    canvas.resize-top-right { cursor: nesw-resize; }
-    canvas.resize-bottom-left { cursor: nesw-resize; }
-    canvas.move { cursor: move; }
-`;
-document.head.appendChild(style);
-
-// Helper function to parse CSV with proper handling of quoted fields
+/**
+ * Parses CSV data with proper handling of quoted fields
+ * @param {string} csv - CSV data string
+ * @returns {Array} Parsed CSV rows
+ */
 function parseCSV(csv) {
     const lines = csv.split('\n').filter(line => line.trim() !== '');
     return lines.map(line => {
-        // Simple split that handles basic quoted fields
         return line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
                   .map(cell => cell.replace(/^"|"$/g, '').trim());
     });
 }
 
+/**
+ * Processes CSV data into the variable input table
+ * @param {string} csv - CSV data string
+ */
 function processCSVData(csv) {
     const rows = csv.split('\n').map(row => row.split(',').map(cell => cell.trim()));
     const variableNames = [...new Set(textElements.filter(e => e.isVariable).map(e => e.text.match(/\{\{(.+?)\}\}/)?.[1]))];
 
-    // Clear existing variable fields
     variableFieldsContainer.innerHTML = "";
 
-    // Create a table for variable inputs
     const table = document.createElement('table');
     table.className = 'variable-table';
 
-    // Create header row
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = `<th>Row</th>` + variableNames.map(v => `<th>${v}</th>`).join('');
     table.appendChild(headerRow);
 
-    // Populate table with CSV data
     rows.forEach((row, index) => {
         const rowElement = document.createElement('tr');
         rowElement.innerHTML = `<td>${index + 1}</td>` + variableNames.map((v, i) => 
@@ -1290,31 +1468,71 @@ function processCSVData(csv) {
     showNotification('Variable data uploaded successfully!', 'success');
 }
 
-// Initialize
-updateCursor();
-updateSidebarForSelection();
+/**
+ * Custom cursor styles for different interaction modes
+ */
+const style = document.createElement('style');
+style.textContent = `
+    canvas.resize-bottom-right { cursor: nwse-resize; }
+    canvas.resize-top-right { cursor: nesw-resize; }
+    canvas.resize-bottom-left { cursor: nesw-resize; }
+    canvas.move { cursor: move; }
+`;
+document.head.appendChild(style);
 
-// Initialize canvas with a basic background
-function initializeCanvas() {
-    if (textElements.length === 0 && imageElements.length === 0 && !backgroundImage && !modifiedBackground) {
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#666';
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Upload a template to get started', canvas.width/2, canvas.height/2);
-        ctx.fillText('or add text/variables directly', canvas.width/2, canvas.height/2 + 30);
-        ctx.textAlign = 'left'; // Reset text alignment
+/**
+ * Ensures fonts are loaded before use
+ */
+async function loadFonts() {
+    if (document.fonts && document.fonts.load) {
+        try {
+            // Load the Google Fonts we're using
+            await document.fonts.load('16px "Cinzel"');
+            await document.fonts.load('16px "Playfair Display"');
+            await document.fonts.load('16px "Cormorant Garamond"');
+            await document.fonts.load('16px "Libre Baskerville"');
+            await document.fonts.load('16px "Crimson Text"');
+            await document.fonts.load('16px "Dancing Script"');
+            await document.fonts.load('16px "Great Vibes"');
+            
+            console.log('Fonts loaded successfully');
+        } catch (error) {
+            console.warn('Some fonts may not have loaded:', error);
+        }
     }
 }
 
-initializeCanvas();
-
-// Force redraw function for testing
-function forceRedraw() {
-    console.log('Force redraw called, current textElements:', textElements);
-    redraw();
+/**
+ * Checks if a font is available
+ * @param {string} fontFamily - Font family to check
+ * @returns {boolean} Whether the font is available
+ */
+function isFontAvailable(fontFamily) {
+    if (!document.fonts || !document.fonts.check) return true; // Assume available if API not supported
+    
+    try {
+        return document.fonts.check(`16px "${fontFamily}"`);
+    } catch (error) {
+        return true; // Assume available if check fails
+    }
 }
 
-// Wire up Generate All Certificates button
+/**
+ * Application initialization
+ */
+updateCursor();
+updateSidebarForSelection();
+ctx.fillStyle = '#f0f0f0';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = '#666';
+ctx.font = '20px Arial';
+ctx.fillText('Upload a template to get started', 50, 50);
+
+// Load fonts and show status
+loadFonts().then(() => {
+    showNotification('All decorative fonts loaded successfully!', 'success');
+}).catch(() => {
+    showNotification('Some fonts may not be available on this system', 'info');
+});
+
 document.getElementById('downloadBtn').addEventListener('click', generateCertificates);

@@ -3,434 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoCertify - Professional Certificate Generator</title>
+    <meta name="description" content="CertiFy - Professional certificate generator with customizable templates and batch processing">
+    <meta name="keywords" content="certificate generator, templates, batch certificates, PDF generator">
+    <meta name="author" content="CertiFy">
+    <title>CertiFy - Professional Bulk Certificate Generator</title>
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Custom CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-light">
-    <div class="container-fluid py-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="text-center">
-                    <h1 class="display-4 fw-bold text-primary mb-2">
-                        <i class="bi bi-award me-2"></i>GoCertify
-                    </h1>
-                    <p class="lead text-muted">Professional Certificate Generator</p>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient">
+        <div class="container-fluid">
+            <div class="navbar-brand d-flex align-items-center">
+                <div class="brand-icon">
+                    <i class="bi bi-award-fill"></i>
                 </div>
-                <!-- Theme Toggle -->
-                <div class="position-fixed top-0 end-0 m-3" style="z-index: 1050;">
-                    <button class="btn btn-outline-secondary btn-sm" id="themeToggle" onclick="toggleTheme()">
-                        <i class="bi bi-moon-fill" id="themeIcon"></i>
-                        <span id="themeText">Dark</span>
-                    </button>
+                <div>
+                    <h3 class="mb-0 fw-bold">CertiFy</h3>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <div class="row">
-            <!-- Sidebar - Controls -->
-            <div class="col-lg-4 col-xl-3">
-                <!-- Text & Content Controls -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                        <h6 class="card-title mb-0">
-                            <i class="bi bi-type me-2"></i>Text & Content Controls
-                        </h6>
-                        <button class="btn btn-light btn-sm" onclick="showHelpModal()">
-                            <i class="bi bi-question-circle me-1"></i>Help
-                        </button>
+    <div class="container-fluid py-4">
+        <div class="row g-4">
+            <!-- Left Sidebar - Quick Setup -->
+            <div class="col-lg-3">
+                <div class="setup-panel">
+                    <div class="setup-header">
+                        <h5><i class="bi bi-lightning-charge"></i> Quick Setup</h5>
+                        <p class="text-muted small mb-0">Get started in 3 easy steps</p>
                     </div>
-                    <div class="card-body">
-                        <!-- Font Controls -->
-                        <div class="mb-3">
-                            <label class="form-label small">Font Family</label>
-                            <select id="fontFamily" class="form-select form-select-sm">
-                                <option value="Arial">Arial</option>
-                                <option value="Times New Roman">Times New Roman</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Verdana">Verdana</option>
-                                <option value="Helvetica">Helvetica</option>
-                                <option value="Comic Sans MS">Comic Sans MS</option>
-                            </select>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label small">Font Size</label>
-                                <input type="number" id="fontSize" value="24" min="8" max="200" class="form-control form-control-sm">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small">Text Color</label>
-                                <input type="color" id="textColor" value="#000000" class="form-control form-control-sm form-control-color">
-                            </div>
-                        </div>
 
-                        <!-- Text Input and Buttons -->
-                        <div class="mb-3">
-                            <label class="form-label small">Text Content</label>
-                            <input type="text" id="textContent" placeholder="Text content" value="Sample Text" class="form-control form-control-sm">
-                        </div>
-
-                        <div class="d-grid gap-2 mb-4">
-                            <button onclick="addText()" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-plus-circle me-1"></i>Add Text
-                            </button>
-                            <button onclick="addVariable()" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-code-square me-1"></i>Add Variable
-                            </button>
-                            <!-- Debug button for testing -->
-                            <button onclick="forceRedraw()" class="btn btn-outline-info btn-sm">
-                                <i class="bi bi-arrow-clockwise me-1"></i>Force Redraw (Debug)
-                            </button>
-                        </div>
-
-                        <!-- Canvas Size Controls -->
-                        <div class="mb-4 border-top pt-3">
-                            <h6 class="mb-2">
-                                <i class="bi bi-arrows-angle-expand me-1"></i>Canvas Size
-                            </h6>
-                            <div class="d-flex align-items-center justify-content-center gap-2 p-2 bg-light rounded">
-                                <button class="btn btn-outline-secondary btn-sm" onclick="zoomOut()">
-                                    <i class="bi bi-dash-lg"></i>
-                                </button>
-                                <span class="badge bg-secondary px-2 py-1" id="zoomLevel">100%</span>
-                                <button class="btn btn-outline-secondary btn-sm" onclick="zoomIn()">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
-                                <button class="btn btn-outline-primary btn-sm" onclick="resetZoom()">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Editing Modes -->
-                        <div class="mb-4 border-top pt-3">
-                            <h6 class="mb-2">
-                                <i class="bi bi-tools me-1"></i>Editing Modes
-                            </h6>
-                            <div class="mb-3">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="mode" value="brush" id="brushMode">
-                                    <label class="form-check-label" for="brushMode">
-                                        <i class="bi bi-brush me-1"></i>Brush Mode
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="mode" value="move" id="moveMode" checked>
-                                    <label class="form-check-label" for="moveMode">
-                                        <i class="bi bi-cursor me-1"></i>Move Mode
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="brush-controls alert alert-warning" id="brushControls" style="display: none;">
-                                <h6 class="alert-heading mb-2">
-                                    <i class="bi bi-palette me-1"></i>Brush Settings
-                                </h6>
-                                <div class="mb-2">
-                                    <label for="brushSize" class="form-label small">Size:</label>
-                                    <input type="range" class="form-range" id="brushSize" min="5" max="50" value="20">
-                                    <small class="text-muted" id="brushSizeDisplay">20px</small>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="small">Color:</span>
-                                    <div id="currentColor" class="color-display border rounded" style="background-color: #ffffff; width: 30px; height: 30px;"></div>
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="undoLastBrush()">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
+                    <!-- Step 1: Template Upload -->
+                    <div class="setup-step active">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h6>Upload Template</h6>
+                            <div class="upload-area">
+                                <input type="file" id="templateUpload" accept="image/*" class="form-control">
+                                <div class="upload-placeholder">
+                                    <i class="bi bi-cloud-upload"></i>
+                                    <p>Choose certificate template</p>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Signature Images -->
-                        <div class="mb-4 border-top pt-3">
-                            <h6 class="mb-2">
-                                <i class="bi bi-pen me-1"></i>Signature Images
-                            </h6>
-                            <input type="file" id="signatureUpload" accept="image/*" multiple class="form-control form-control-sm mb-3">
-                            <div class="signature-list" id="signatureList"></div>
-                            <button onclick="addSignatureToCanvas()" class="btn btn-info w-100 btn-sm" disabled id="addSignatureBtn">
-                                <i class="bi bi-plus-circle me-1"></i>Add Selected Signature to Canvas
-                            </button>
-                        </div>
                     </div>
-                </div>
 
-                <!-- Delete Selected -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <button onclick="deleteSelected()" id="deleteBtn" class="btn btn-danger w-100" disabled>
-                            <i class="bi bi-trash me-1"></i>Delete Selected
-                        </button>
-                        <div id="selectedNameLabel" class="mt-2 p-2 bg-light rounded text-center small" style="display:none;"></div>
-                    </div>
-                </div>
-
-                <!-- Variable Data -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h6 class="card-title mb-0">
-                            <i class="bi bi-table me-2"></i>Variable Data
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div id="variableFieldsContainer"></div>
-                        <div class="mt-3">
-                            <input type="file" id="variableDataUpload" accept=".csv" class="form-control form-control-sm">
-                            <button onclick="processCSV()" class="btn btn-outline-secondary w-100 mt-2 btn-sm">
-                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Process CSV
+                    <!-- Step 2: Import Data -->
+                    <div class="setup-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h6>Import Data</h6>
+                            <input type="file" id="variableDataUpload" accept=".csv" class="form-control">
+                            <button onclick="processCSV()" class="btn btn-outline-primary w-100 mt-2 btn-sm">
+                                <i class="bi bi-upload"></i> Process CSV
                             </button>
                             <div id="csvStatus" class="mt-2 small text-muted"></div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Generate Certificates -->
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <button id="downloadBtn" class="btn btn-success w-100 btn-lg">
-                            <i class="bi bi-download me-2"></i>Generate All Certificates
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content Area - Canvas -->
-            <div class="col-lg-8 col-xl-9">
-                <!-- Template Upload Card -->
-                <div class="card shadow-sm mb-4" id="templateUploadCard">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-upload me-2"></i>Upload Template
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <input type="file" id="templateUpload" accept="image/*" class="form-control">
-                            <div class="form-text">Upload your certificate template image (JPG, PNG)</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Template Management Card (Hidden by default) -->
-                <div class="card shadow-sm mb-4" id="templateManageCard" style="display: none;">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-image me-2"></i>Template Loaded
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Your certificate template is ready for editing</span>
-                            <button class="btn btn-outline-danger btn-sm" onclick="removeTemplate()">
-                                <i class="bi bi-trash me-1"></i>Remove Template
+                    <!-- Step 3: Generate -->
+                    <div class="setup-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h6>Generate Certificates</h6>
+                            <button id="downloadBtn" class="btn btn-success w-100 btn-lg generate-btn">
+                                <i class="bi bi-download"></i>
+                                <span>Generate All</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Canvas Container -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-easel me-2"></i>Certificate Canvas
-                        </h5>
+                <!-- Signatures Section -->
+                <div class="tool-panel mt-4">
+                    <div class="panel-header">
+                        <h6><i class="bi bi-pen"></i> Signatures</h6>
                     </div>
-                    <div class="card-body p-2">
-                        <div class="canvas-wrapper" style="max-height: 80vh; overflow: auto; border: 1px solid #dee2e6; border-radius: 8px;">
-                            <div class="canvas-container" id="canvasContainer">
-                                <canvas id="certificateCanvas" width="800" height="600" class="border rounded"></canvas>
-                                <div id="editOverlay" class="position-absolute bg-white border border-primary rounded shadow p-3" style="display: none;">
-                                    <h6 class="mb-2">
-                                        <i class="bi bi-type me-1"></i>Add text at this position:
-                                    </h6>
-                                    <input type="text" id="editInput" placeholder="Enter replacement text" class="form-control mb-3">
+                    <div class="panel-body">
+                        <input type="file" id="signatureUpload" accept="image/*" multiple class="form-control form-control-sm mb-3">
+                        <div class="signature-list" id="signatureList"></div>
+                        <button onclick="addSignatureToCanvas()" class="btn btn-info w-100 btn-sm" disabled id="addSignatureBtn">
+                            <i class="bi bi-plus-circle"></i> Add to Canvas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Canvas Area -->
+            <div class="col-lg-6">
+                <div class="canvas-panel">
+                    <!-- Toolbar -->
+                    <div class="toolbar">
+                        <!-- Editing Modes -->
+                        <div class="tool-group">
+                            <div class="btn-group mode-selector" role="group">
+                                <input type="radio" class="btn-check" name="mode" value="move" id="moveMode" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="moveMode" title="Move elements">
+                                    <i class="bi bi-arrows-move"></i>
+                                </label>
+
+                                <input type="radio" class="btn-check" name="mode" value="edit" id="editMode" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="editMode" title="Add text">
+                                    <i class="bi bi-pencil"></i>
+                                </label>
+
+                                <input type="radio" class="btn-check" name="mode" value="brush" id="brushMode" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="brushMode" title="Remove text">
+                                    <i class="bi bi-brush"></i>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Zoom Controls -->
+                        <div class="tool-group">
+                            <div class="btn-group zoom-controls" role="group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="zoomOut()" title="Zoom out">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary zoom-display" onclick="resetZoom()" title="Reset zoom">
+                                    <span id="zoomLevel">100%</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="zoomIn()" title="Zoom in">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="tool-group ms-auto">
+                            <button onclick="deleteSelected()" id="deleteBtn" class="btn btn-outline-danger" disabled title="Delete selected">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Brush Controls (Hidden by default) -->
+                    <div class="brush-panel" id="brushControls" style="display: none;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="brush-size-control">
+                                <label class="form-label small mb-1">Brush Size</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="range" class="form-range" id="brushSize" min="5" max="50" value="20">
+                                    <span id="brushSizeDisplay" class="size-display">20px</span>
+                                </div>
+                            </div>
+                            <div class="current-color-display">
+                                <label class="form-label small mb-1">Color</label>
+                                <div id="currentColor" class="color-preview"></div>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="undoLastBrush()" title="Undo last brush stroke">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Container -->
+                    <div class="canvas-workspace">
+                        <div class="canvas-container" id="canvasContainer">
+                            <canvas id="certificateCanvas" width="800" height="600"></canvas>
+                            <div id="editOverlay" class="edit-overlay">
+                                <div class="overlay-content">
+                                    <h6>Add Text</h6>
+                                    <input type="text" id="editInput" placeholder="Enter text" class="form-control mb-2">
                                     <div class="d-flex gap-2">
-                                        <button onclick="confirmEdit()" class="btn btn-success btn-sm">
-                                            <i class="bi bi-check2 me-1"></i>Add Text
+                                        <button onclick="confirmEdit()" class="btn btn-success btn-sm flex-fill">
+                                            <i class="bi bi-check"></i> Add
                                         </button>
-                                        <button onclick="makeVariable()" class="btn btn-warning btn-sm">
-                                            <i class="bi bi-code-square me-1"></i>Add Variable
+                                        <button onclick="makeVariable()" class="btn btn-warning btn-sm flex-fill">
+                                            <i class="bi bi-braces"></i> Variable
                                         </button>
-                                        <button onclick="cancelEdit()" class="btn btn-secondary btn-sm">
-                                            <i class="bi bi-x me-1"></i>Cancel
+                                        <button onclick="cancelEdit()" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-x"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div class="instructions-panel">
+                        <div class="mode-instructions" data-mode="move">
+                            <i class="bi bi-arrows-move text-primary"></i>
+                            <span><strong>Move Mode:</strong> Drag elements to reposition them</span>
+                        </div>
+                        <div class="mode-instructions" data-mode="edit" style="display: none;">
+                            <i class="bi bi-pencil text-info"></i>
+                            <span><strong>Edit Mode:</strong> Click to add text or place signatures</span>
+                        </div>
+                        <div class="mode-instructions" data-mode="brush" style="display: none;">
+                            <i class="bi bi-brush text-warning"></i>
+                            <span><strong>Brush Mode:</strong> Paint over unwanted text to remove it</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Help Modal -->
-    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="helpModalLabel">
-                        <i class="bi bi-book me-2"></i>How to Use GoCertify
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="text-primary mb-3">
-                                <i class="bi bi-1-circle me-2"></i>Getting Started
-                            </h6>
-                            <div class="alert alert-info">
-                                <h6 class="alert-heading">Upload Your Template</h6>
-                                <p class="mb-0">Start by uploading a certificate template image (JPG or PNG) using the upload button. This will be the background for your certificates.</p>
+            <!-- Right Sidebar - Customization -->
+            <div class="col-lg-3">
+                <!-- Selected Element Info -->
+                <div class="element-panel mb-4">
+                    <div class="panel-header">
+                        <h6><i class="bi bi-cursor"></i> Selected Element</h6>
+                    </div>
+                    <div class="panel-body">
+                        <div id="selectedNameDisplay" class="selected-element-name"></div>
+                        
+                        <!-- Text Styling -->
+                        <div class="styling-controls">
+                            <div class="control-row">
+                                <label class="control-label">Font</label>
+                                <select id="fontFamily" class="form-select form-select-sm">
+                                    <optgroup label="Premium Certificate Fonts">
+                                        <option value="Cinzel">Cinzel (Elegant)</option>
+                                        <option value="Playfair Display">Playfair Display (Luxury)</option>
+                                        <option value="Cormorant Garamond">Cormorant Garamond (Classic)</option>
+                                        <option value="Libre Baskerville">Libre Baskerville (Traditional)</option>
+                                        <option value="Crimson Text">Crimson Text (Academic)</option>
+                                    </optgroup>
+                                    <optgroup label="Script & Handwritten">
+                                        <option value="Dancing Script">Dancing Script (Handwritten)</option>
+                                        <option value="Great Vibes">Great Vibes (Signature)</option>
+                                        <option value="Brush Script MT">Brush Script MT</option>
+                                        <option value="Lucida Handwriting">Lucida Handwriting</option>
+                                    </optgroup>
+                                    <optgroup label="Classic Serif">
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Garamond">Garamond</option>
+                                        <option value="Book Antiqua">Book Antiqua</option>
+                                    </optgroup>
+                                    <optgroup label="Modern Sans-Serif">
+                                        <option value="Arial">Arial</option>
+                                        <option value="Helvetica">Helvetica</option>
+                                        <option value="Calibri">Calibri</option>
+                                        <option value="Trebuchet MS">Trebuchet MS</option>
+                                    </optgroup>
+                                </select>
                             </div>
-
-                            <h6 class="text-primary mb-3 mt-4">
-                                <i class="bi bi-2-circle me-2"></i>Editing Your Certificate
-                            </h6>
                             
-                            <div class="accordion" id="editingAccordion">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#brushModeHelp" aria-expanded="true">
-                                            <i class="bi bi-brush me-2 text-warning"></i>Brush Mode
-                                        </button>
-                                    </h2>
-                                    <div id="brushModeHelp" class="accordion-collapse collapse show" data-bs-parent="#editingAccordion">
-                                        <div class="accordion-body">
-                                            <ul class="list-unstyled">
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Select "Brush Mode" to paint over unwanted text on your template</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Adjust brush size using the slider (5-50px)</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>The brush automatically samples the background color</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Hold and drag to paint over text you want to remove</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Use "Undo Last" to remove the most recent brush stroke</li>
-                                            </ul>
-                                        </div>
+                            <div class="control-row">
+                                <div class="d-flex gap-2">
+                                    <div class="flex-fill">
+                                        <label class="control-label">Size</label>
+                                        <input type="number" id="fontSize" value="24" min="8" max="200" class="form-control form-control-sm">
                                     </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#moveModeHelp">
-                                            <i class="bi bi-cursor me-2 text-info"></i>Move Mode
-                                        </button>
-                                    </h2>
-                                    <div id="moveModeHelp" class="accordion-collapse collapse" data-bs-parent="#editingAccordion">
-                                        <div class="accordion-body">
-                                            <ul class="list-unstyled">
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Default mode for interacting with text and images</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Click on any element to select it</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Drag selected elements to reposition them</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Click empty areas to add new text or variables</li>
-                                                <li><i class="bi bi-check-circle text-success me-2"></i>Selected elements show in the sidebar for editing</li>
-                                            </ul>
-                                        </div>
+                                    <div>
+                                        <label class="control-label">Color</label>
+                                        <input type="color" id="textColor" value="#000000" class="form-control form-control-color">
                                     </div>
-                                </div>
-                            </div>
-
-                            <h6 class="text-primary mb-3 mt-4">
-                                <i class="bi bi-3-circle me-2"></i>Adding Content
-                            </h6>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="card border-success">
-                                        <div class="card-header bg-success text-white">
-                                            <h6 class="mb-0"><i class="bi bi-type me-1"></i>Static Text</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <ul class="list-unstyled small">
-                                                <li>• Enter text in the sidebar</li>
-                                                <li>• Choose font, size, and color</li>
-                                                <li>• Click "Add Text" button</li>
-                                                <li>• Text appears on canvas</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card border-warning">
-                                        <div class="card-header bg-warning text-dark">
-                                            <h6 class="mb-0"><i class="bi bi-code-square me-1"></i>Variable Text</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <ul class="list-unstyled small">
-                                                <li>• Enter variable name (e.g., "NAME")</li>
-                                                <li>• Choose font, size, and color</li>
-                                                <li>• Click "Add Variable" button</li>
-                                                <li>• Variable appears as {{NAME}}</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <h6 class="text-primary mb-3 mt-4">
-                                <i class="bi bi-4-circle me-2"></i>Signatures & Images
-                            </h6>
-                            <div class="alert alert-secondary">
-                                <ul class="list-unstyled mb-0">
-                                    <li><i class="bi bi-upload me-2 text-primary"></i>Upload signature images using the file input</li>
-                                    <li><i class="bi bi-hand-index me-2 text-primary"></i>Click on a signature to select it (blue border indicates selection)</li>
-                                    <li><i class="bi bi-plus-circle me-2 text-primary"></i>Click "Add Selected Signature" to place it on the canvas</li>
-                                    <li><i class="bi bi-arrows-move me-2 text-primary"></i>Use Move Mode to reposition and resize signatures</li>
-                                </ul>
-                            </div>
-
-                            <h6 class="text-primary mb-3 mt-4">
-                                <i class="bi bi-5-circle me-2"></i>Variable Data & CSV
-                            </h6>
-                            <div class="alert alert-warning">
-                                <h6 class="alert-heading">Manual Input</h6>
-                                <p>After adding variables, a table will appear where you can manually enter data for each certificate row.</p>
-                                
-                                <h6 class="alert-heading mt-3">CSV Upload</h6>
-                                <p class="mb-0">Upload a CSV file with column headers matching your variable names (e.g., NAME, DATE, COURSE) to automatically populate the data table.</p>
-                            </div>
-
-                            <h6 class="text-primary mb-3 mt-4">
-                                <i class="bi bi-6-circle me-2"></i>Generating Certificates
-                            </h6>
-                            <div class="alert alert-success">
-                                <ul class="list-unstyled mb-0">
-                                    <li><i class="bi bi-check2 me-2"></i>Ensure all variables have corresponding data</li>
-                                    <li><i class="bi bi-check2 me-2"></i>Click "Generate All Certificates" button</li>
-                                    <li><i class="bi bi-check2 me-2"></i>One certificate will be generated for each data row</li>
-                                    <li><i class="bi bi-check2 me-2"></i>Files will be automatically downloaded</li>
-                                </ul>
-                            </div>
-
-                            <h6 class="text-primary mb-3 mt-4">
-                                <i class="bi bi-lightbulb me-2"></i>Tips & Tricks
-                            </h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item"><i class="bi bi-zoom-in me-2 text-info"></i>Use zoom controls to work on details</li>
-                                        <li class="list-group-item"><i class="bi bi-trash me-2 text-danger"></i>Delete elements using the Delete button</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item"><i class="bi bi-palette me-2 text-warning"></i>Brush samples color automatically</li>
-                                        <li class="list-group-item"><i class="bi bi-arrow-counterclockwise me-2 text-secondary"></i>Use undo for brush corrections</li>
-                                    </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                        <i class="bi bi-check-lg me-1"></i>Got it!
-                    </button>
+
+                <!-- Add Content -->
+                <div class="content-panel mb-4">
+                    <div class="panel-header">
+                        <h6><i class="bi bi-plus-circle"></i> Add Content</h6>
+                    </div>
+                    <div class="panel-body">
+                        <div class="add-text-section">
+                            <input type="text" id="textContent" placeholder="Enter text content" value="Sample Text" class="form-control mb-2">
+                            <div class="d-flex gap-2">
+                                <button onclick="addText()" class="btn btn-primary flex-fill btn-sm">
+                                    <i class="bi bi-type"></i> Add Text
+                                </button>
+                                <button onclick="addVariable()" class="btn btn-outline-warning flex-fill btn-sm">
+                                    <i class="bi bi-braces"></i> Variable
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variable Fields -->
+                <div class="variables-panel">
+                    <div class="panel-header">
+                        <h6><i class="bi bi-list-ul"></i> Variables</h6>
+                        <small class="text-muted">Fields that change per certificate</small>
+                    </div>
+                    <div class="panel-body">
+                        <div id="variableFieldsContainer" class="variables-container">
+                            <div class="no-variables">
+                                <i class="bi bi-info-circle text-muted"></i>
+                                <p class="text-muted mb-0">No variables added yet</p>
+                                <small class="text-muted">Add variables to customize each certificate</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -438,6 +306,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JSZip Library for creating zip files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
