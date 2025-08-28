@@ -297,6 +297,24 @@
                                 </div>
                             </div>
 
+                            <!-- Brush Controls (Hidden by default) -->
+                            <div class="brush-panel" id="brushControls" style="display: none;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label class="form-label small mb-0 me-1">Size</label>
+                                    <input type="range" class="form-range" id="brushSize" min="5" max="50" value="20" style="width: 80px;">
+                                    <span id="brushSizeDisplay" class="size-display">20px</span>
+                                    
+                                    <div class="vr mx-2"></div>
+                                    
+                                    <label class="form-label small mb-0 me-1">Color</label>
+                                    <div id="currentColor" class="color-preview"></div>
+                                    
+                                    <button class="btn btn-outline-secondary btn-sm ms-2" onclick="undoLastBrush()" title="Undo last brush stroke">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Zoom Controls -->
                             <div class="tool-group">
                                 <div class="btn-group zoom-controls" role="group">
@@ -316,26 +334,6 @@
                             <div class="tool-group ms-auto">
                                 <button onclick="deleteSelected()" id="deleteBtn" class="btn btn-outline-danger" disabled title="Delete selected">
                                     <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Brush Controls (Hidden by default) -->
-                        <div class="brush-panel" id="brushControls" style="display: none;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="brush-size-control">
-                                    <label class="form-label small mb-1">Brush Size</label>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <input type="range" class="form-range" id="brushSize" min="5" max="50" value="20">
-                                        <span id="brushSizeDisplay" class="size-display">20px</span>
-                                    </div>
-                                </div>
-                                <div class="current-color-display">
-                                    <label class="form-label small mb-1">Color</label>
-                                    <div id="currentColor" class="color-preview"></div>
-                                </div>
-                                <button class="btn btn-outline-secondary btn-sm" onclick="undoLastBrush()" title="Undo last brush stroke">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
                                 </button>
                             </div>
                         </div>

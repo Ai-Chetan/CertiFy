@@ -649,34 +649,40 @@ body {
 
 /* Brush Panel */
 .brush-panel {
-    background: #fef3c7;
-    border: 1px solid #f59e0b;
-    padding: 15px 20px;
-    border-radius: 0;
+    border: 1px solid #cbd5e1 !important;
+    background: #f1f5f9;
+    padding: 6px 15px;
+    border-radius: 8px;
     margin: 0;
-}
-
-.brush-size-control {
-    min-width: 140px;
 }
 
 .size-display {
     background: #1e293b;
     color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
     font-weight: 500;
-    min-width: 40px;
+    min-width: 35px;
     text-align: center;
+    line-height: 1.2;
 }
 
 .color-preview {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     border: 2px solid #cbd5e1;
-    border-radius: 6px;
+    border-radius: 4px;
     background-color: #ffffff;
+}
+
+.form-range {
+    height: 20px;
+}
+
+.vr {
+    height: 20px;
+    opacity: 0.3;
 }
 
 /* Canvas Workspace */
@@ -963,7 +969,7 @@ canvas {
 }
 
 .variable-table th {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    background: #3b82f6;
     color: white;
     font-weight: 600;
     font-size: 0.875rem;
