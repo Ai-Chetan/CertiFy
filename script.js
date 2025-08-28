@@ -349,12 +349,11 @@ function addSignatureToCanvas() {
  * Visual zoom is handled through CSS transforms on the container
  */
 
-// Zoom configuration - Canva-like behavior
+// Zoom configuration
 const ZOOM_CONFIG = {
-    min: 0.1,       // 10% minimum zoom (very zoomed out)
-    max: 5.0,       // 500% maximum zoom (very zoomed in)  
-    step: 1.2,      // 20% zoom increment for buttons
-    wheel: 1.1,     // 10% smooth increment for wheel
+    min: 0.25,      // 25% minimum zoom
+    max: 4.0,       // 400% maximum zoom  
+    step: 1.25,     // 25% zoom increment
     default: 1.0    // 100% default zoom
 };
 
@@ -428,8 +427,8 @@ function updateZoomDisplay() {
     // Update scroll indicators if content overflows
     updateScrollIndicators(workspace, container);
     
-    // Immediate scroll to center for responsive feel
-    setTimeout(() => scrollToCenter(workspace, container), 10);
+    // Scroll to center the content after zoom change
+    setTimeout(() => scrollToCenter(workspace, container), 50);
     
     // Update zoom level display
     updateZoomLevelDisplay();
@@ -440,24 +439,9 @@ function updateZoomDisplay() {
  * @param {HTMLElement} container - Canvas container element
  */
 function applyZoomTransform(container) {
-    const workspace = document.querySelector('.canvas-workspace');
-    const scaledWidth = canvas.width * zoomLevel;
-    const scaledHeight = canvas.height * zoomLevel;
-    const workspaceRect = workspace.getBoundingClientRect();
-    const availableWidth = workspaceRect.width - 30;
-    const availableHeight = workspaceRect.height - 30;
-    
-    const contentFits = scaledWidth <= availableWidth && scaledHeight <= availableHeight;
-    
-    if (contentFits) {
-        // Apply scale transform for flexbox layout
-        container.style.transform = `scale(${zoomLevel})`;
-        container.style.transformOrigin = 'center center';
-    } else {
-        // For absolute positioning, scaling is handled in centerContentInWorkspace
-        container.style.transform = `translate(-50%, -50%) scale(${zoomLevel})`;
-        container.style.transformOrigin = 'center center';
-    }
+    // Apply scale transform to container (visual zoom only)
+    container.style.transform = `scale(${zoomLevel})`;
+    container.style.transformOrigin = 'top left';
     
     // Keep canvas at native resolution (100% internal size)
     canvas.style.transform = 'none';
@@ -498,48 +482,40 @@ function updateWorkspaceLayout(workspace, container) {
  * @param {boolean} fitsCompletely - Whether content fits without scrolling
  */
 function centerContentInWorkspace(workspace, container, fitsCompletely = true) {
-    const scaledWidth = canvas.width * zoomLevel;
-    const scaledHeight = canvas.height * zoomLevel;
-    const workspaceRect = workspace.getBoundingClientRect();
-    const availableWidth = workspaceRect.width - 30; // Account for padding
-    const availableHeight = workspaceRect.height - 30;
+    // Always use flexbox centering
+    workspace.style.display = 'flex';
+    workspace.style.justifyContent = 'center';
+    workspace.style.alignItems = 'center';
     
-    // Check if content actually fits
-    const contentFits = scaledWidth <= availableWidth && scaledHeight <= availableHeight;
-    
-    if (contentFits) {
-        // Content fits - use flexbox centering
-        workspace.style.display = 'flex';
-        workspace.style.justifyContent = 'center';
-        workspace.style.alignItems = 'center';
+    // Handle overflow vs no-overflow scenarios
+    if (fitsCompletely) {
+        // Content fits - no scrolling needed, reset padding
         workspace.style.overflow = 'hidden';
-        workspace.style.padding = '15px';
-        
-        // Reset container positioning
-        container.style.position = 'static';
-        container.style.margin = '0';
-        container.style.left = 'auto';
-        container.style.top = 'auto';
+        workspace.style.padding = '20px'; // Reset to default padding
     } else {
-        // Content overflows - create proper scrollable area
-        workspace.style.display = 'block';
+        // Content overflows - enable scrolling while keeping centered
         workspace.style.overflow = 'auto';
-        workspace.style.position = 'relative';
         
-        // Calculate padding needed to center and allow full scrolling
-        const minPaddingX = Math.max(50, workspaceRect.width / 2);
-        const minPaddingY = Math.max(50, workspaceRect.height / 2);
+        // Ensure the container can be scrolled to show all content
+        // Add padding to allow scrolling past center point
+        const scaledWidth = canvas.width * zoomLevel;
+        const scaledHeight = canvas.height * zoomLevel;
+        const workspaceRect = workspace.getBoundingClientRect();
+        const extraPaddingX = Math.max(0, (workspaceRect.width - scaledWidth) / 2);
+        const extraPaddingY = Math.max(0, (workspaceRect.height - scaledHeight) / 2);
         
-        // Set padding that allows scrolling to see entire image
-        workspace.style.padding = `${minPaddingY}px ${minPaddingX}px`;
+        // Set minimum padding to enable center scrolling
+        const paddingX = Math.max(20, extraPaddingX);
+        const paddingY = Math.max(20, extraPaddingY);
         
-        // Position container absolutely in center
-        container.style.position = 'absolute';
-        container.style.left = '50%';
-        container.style.top = '50%';
-        container.style.transform = `translate(-50%, -50%)`;
-        container.style.margin = '0';
+        workspace.style.padding = `${paddingY}px ${paddingX}px`;
     }
+    
+    // Reset container positioning to work with flexbox
+    container.style.position = 'static';
+    container.style.margin = '0';
+    container.style.left = 'auto';
+    container.style.top = 'auto';
 }
 
 /**
@@ -559,21 +535,33 @@ function updateScrollIndicators(workspace, container) {
 }
 
 /**
- * Scrolls the workspace to center the canvas content perfectly
+ * Scrolls the workspace to center the canvas content
  * @param {HTMLElement} workspace - Canvas workspace element
  * @param {HTMLElement} container - Canvas container element
  */
 function scrollToCenter(workspace, container) {
-    // Only scroll if we're using absolute positioning (overflow mode)
-    if (workspace.style.display === 'block' && workspace.style.overflow === 'auto') {
-        setTimeout(() => {
-            // Calculate center scroll position for absolute positioned content
-            const scrollLeft = Math.max(0, (workspace.scrollWidth - workspace.clientWidth) / 2);
-            const scrollTop = Math.max(0, (workspace.scrollHeight - workspace.clientHeight) / 2);
-            
-            workspace.scrollLeft = scrollLeft;
-            workspace.scrollTop = scrollTop;
-        }, 10);
+    // Only scroll if content overflows and scrolling is enabled
+    if (workspace.style.overflow === 'auto') {
+        // Calculate the center scroll position
+        const scaledWidth = canvas.width * zoomLevel;
+        const scaledHeight = canvas.height * zoomLevel;
+        const workspaceRect = workspace.getBoundingClientRect();
+        
+        // Calculate scroll positions to center the content
+        const maxScrollLeft = workspace.scrollWidth - workspace.clientWidth;
+        const maxScrollTop = workspace.scrollHeight - workspace.clientHeight;
+        
+        const targetScrollLeft = Math.max(0, Math.min(maxScrollLeft, 
+            (scaledWidth - workspace.clientWidth) / 2));
+        const targetScrollTop = Math.max(0, Math.min(maxScrollTop, 
+            (scaledHeight - workspace.clientHeight) / 2));
+        
+        // Smooth scroll to center
+        workspace.scrollTo({
+            left: targetScrollLeft,
+            top: targetScrollTop,
+            behavior: 'smooth'
+        });
     }
 }
 
@@ -926,12 +914,8 @@ function redraw() {
         ctx.fillStyle = element.color;
         ctx.textBaseline = 'top';
         
-        // Set text alignment based on whether it's a variable
-        if (element.isVariable) {
-            ctx.textAlign = 'center';
-        } else {
-            ctx.textAlign = 'left';
-        }
+        // Set text alignment based on the element's alignment property
+        ctx.textAlign = element.alignment || 'center';
 
         if (element === selectedElement) {
             const metrics = ctx.measureText(element.text);
@@ -1234,41 +1218,6 @@ canvas.addEventListener('mouseup', function() {
     isResizing = false;
 });
 
-// Simple wheel zoom: Only Ctrl+wheel for zoom
-canvas.addEventListener('wheel', function(e) {
-    // Only zoom with Ctrl+wheel, otherwise allow normal scrolling
-    if (e.ctrlKey || e.metaKey) {
-        e.preventDefault(); // Prevent page scroll only when zooming
-        
-        // Calculate zoom direction and amount
-        const zoomDirection = e.deltaY > 0 ? -1 : 1; // Reverse deltaY (down = zoom out)
-        const zoomFactor = ZOOM_CONFIG.wheel; // Use smooth wheel increment
-        
-        // Calculate new zoom level
-        let newZoom;
-        if (zoomDirection > 0) {
-            newZoom = Math.min(zoomLevel * zoomFactor, ZOOM_CONFIG.max);
-        } else {
-            newZoom = Math.max(zoomLevel / zoomFactor, ZOOM_CONFIG.min);
-        }
-        
-        // Only update if zoom actually changed
-        if (newZoom !== zoomLevel) {
-            const workspace = document.querySelector('.canvas-workspace');
-            const container = document.getElementById('canvasContainer');
-            
-            // Apply new zoom level
-            setZoomLevel(newZoom);
-            
-            // Update layout immediately
-            setTimeout(() => {
-                centerContentInWorkspace(workspace, container);
-                scrollToCenter(workspace, container);
-            }, 5);
-        }
-    }
-}, { passive: false });
-
 /**
  * Brush tool functions
  */
@@ -1567,12 +1516,8 @@ function generateSingleCertificateAsBlob(vars) {
         tempCtx.fillStyle = element.color;
         tempCtx.textBaseline = 'top';
         
-        // Set text alignment based on whether it's a variable
-        if (element.isVariable) {
-            tempCtx.textAlign = 'center';
-        } else {
-            tempCtx.textAlign = 'left';
-        }
+        // Set text alignment based on the element's alignment property
+        tempCtx.textAlign = element.alignment || 'center';
         
         let text = element.text;
         if (element.isVariable) {
@@ -1645,12 +1590,8 @@ function generateSingleCertificateWithVars(vars) {
         tempCtx.fillStyle = element.color;
         tempCtx.textBaseline = 'top';
         
-        // Set text alignment based on whether it's a variable
-        if (element.isVariable) {
-            tempCtx.textAlign = 'center';
-        } else {
-            tempCtx.textAlign = 'left';
-        }
+        // Set text alignment based on the element's alignment property
+        tempCtx.textAlign = element.alignment || 'center';
         
         let text = element.text;
         if (element.isVariable) {
@@ -1722,12 +1663,8 @@ function downloadCanvasImage() {
         exportCtx.fillStyle = el.color;
         exportCtx.textBaseline = 'top';
         
-        // Set text alignment based on whether it's a variable
-        if (el.isVariable) {
-            exportCtx.textAlign = 'center';
-        } else {
-            exportCtx.textAlign = 'left';
-        }
+        // Set text alignment based on the element's alignment property
+        exportCtx.textAlign = el.alignment || 'center';
         
         exportCtx.fillText(el.text, el.x * scaleFactor, el.y * scaleFactor);
         exportCtx.restore();
@@ -1763,9 +1700,18 @@ document.addEventListener('keydown', function(e) {
         cancelEdit();
     }
     
-    // Only keep Ctrl+F for auto-fit template
+    // Zoom shortcuts (Ctrl/Cmd + Plus/Minus/0)
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        if (e.key === 'f' || e.key === 'F') {
+        if (e.key === '=' || e.key === '+') {
+            e.preventDefault();
+            zoomIn();
+        } else if (e.key === '-') {
+            e.preventDefault();
+            zoomOut();
+        } else if (e.key === '0') {
+            e.preventDefault();
+            resetZoom();
+        } else if (e.key === 'f' || e.key === 'F') {
             // Ctrl+F: Re-fit template to optimal size
             e.preventDefault();
             if (backgroundImage) {
@@ -2108,6 +2054,7 @@ function isFontAvailable(fontFamily) {
 
 /**
  * Application initialization
+
  */
 updateCursor();
 updateSidebarForSelection();
@@ -2125,3 +2072,14 @@ loadFonts().then(() => {
 });
 
 document.getElementById('downloadBtn').addEventListener('click', generateCertificates);
+
+/**
+ * Sets the alignment of the selected text or variable element and triggers a redraw
+ * @param {string} alignment - The alignment value (e.g., 'left', 'center', 'right')
+ */
+function setAlignment(alignment) {
+    if (selectedElement) {
+        selectedElement.alignment = alignment;
+        redraw();
+    }
+}

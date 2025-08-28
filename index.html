@@ -16,28 +16,28 @@
 </head>
 <body>
     <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient py-1">
-        <div class="container-fluid px-3">
-            <div class="navbar-brand d-flex align-items-center mb-0">
-                <div class="brand-icon me-2">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient">
+        <div class="container-fluid">
+            <div class="navbar-brand d-flex align-items-center">
+                <div class="brand-icon">
                     <i class="bi bi-award-fill"></i>
                 </div>
                 <div>
-                    <h4 class="mb-0 fw-bold">CertiFy</h4>
-                    <small class="text-white-50 d-none d-md-block">Professional Certificate Generator</small>
+                    <h3 class="mb-0 fw-bold">CertiFy</h3>
+                    <small class="text-white-50">Professional Certificate Generator</small>
                 </div>
             </div>
             
             <!-- Navigation Links -->
             <div class="navbar-nav ms-auto d-flex flex-row gap-2">
                 <button class="btn btn-outline-light btn-sm" onclick="showLandingPage()" id="homeBtn">
-                    <i class="bi bi-house"></i> <span class="d-none d-md-inline">Home</span>
+                    <i class="bi bi-house"></i> Home
                 </button>
                 <button class="btn btn-outline-light btn-sm" onclick="showMainApp()" id="appBtn" style="display: none;">
-                    <i class="bi bi-tools"></i> <span class="d-none d-md-inline">Start Creating</span>
+                    <i class="bi bi-tools"></i> Start Creating
                 </button>
                 <button class="btn btn-outline-warning btn-sm" onclick="startFresh()" id="freshBtn" style="display: none;">
-                    <i class="bi bi-arrow-clockwise"></i> <span class="d-none d-md-inline">Start Fresh</span>
+                    <i class="bi bi-arrow-clockwise"></i> Start Fresh
                 </button>
             </div>
         </div>
@@ -277,9 +277,9 @@
     <!-- Main Application (Hidden by default) -->
     <div id="mainApp" style="display: none;">
         <div class="container-fluid">
-            <div class="row mt-2">
-                <!-- Main Canvas Area - Increased from col-lg-9 to col-lg-10 -->
-                <div class="col-lg-10">
+            <div class="row mt-3">
+                <!-- Main Canvas Area -->
+                <div class="col-lg-9">
                     <div class="canvas-panel">
                         <!-- Toolbar -->
                         <div class="toolbar">
@@ -399,60 +399,92 @@
                 </div>
 
                 <!-- Right Sidebar - Customization -->
-                <div class="col-lg-2">
-                    <!-- Selected Element Info -->
-                    <div class="element-panel mb-3">
+                <div class="col-lg-3">
+                    <div class="element-panel mb-4">
                         <div class="panel-header">
-                            <h6><i class="bi bi-cursor"></i> Selected</h6>
+                            <h6><i class="bi bi-cursor"></i> Tool Kit</h6>
                         </div>
-                        <div class="panel-body p-2">
-                            <div id="selectedNameDisplay" class="selected-element-name mb-2"></div>
-                            
+                        <div class="panel-body">
+                            <div id="selectedNameDisplay" class="selected-element-name"></div>
                             <!-- Text Styling -->
                             <div class="styling-controls">
-                                <div class="control-row mb-2">
-                                    <label class="control-label small">Add Text</label>
-                                    <input type="text" id="textContent" placeholder="Enter text" value="Name" class="form-control form-control-sm mb-2">
-                                    <div class="d-grid gap-1">
-                                        <button onclick="addText()" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-type"></i> Text
+                                <div class="control-row">
+                                    <label class="control-label">Add Text</label>
+                                    <input type="text" id="textContent" placeholder="Enter text content" value="Name" class="form-control mb-2">
+                                    <div class="d-flex gap-2">
+                                        <button onclick="addText()" class="btn btn-primary flex-fill btn-sm">
+                                            <i class="bi bi-type"></i> Add as a Text
                                         </button>
-                                        <button onclick="addVariable()" class="btn btn-outline-warning btn-sm">
-                                            <i class="bi bi-braces"></i> Variable
+                                        <button onclick="addVariable()" class="btn btn-outline-warning flex-fill btn-sm">
+                                            <i class="bi bi-braces"></i> Add as a Variable
                                         </button>
                                     </div>
                                 </div>
-                                <div class="control-row mb-2">
-                                    <label class="control-label small">Font</label>
+                                <div class="control-row">
+                                    <label class="control-label">Font</label>
                                     <select id="fontFamily" class="form-select form-select-sm">
-                                        <option value="Cinzel">Cinzel (Elegant)</option>
-                                        <option value="Playfair Display">Playfair Display</option>
-                                        <option value="Arial">Arial</option>
-                                        <option value="Times New Roman">Times New Roman</option>
-                                        <option value="Dancing Script">Dancing Script</option>
-                                        <option value="Great Vibes">Great Vibes</option>
+                                        <optgroup label="Premium Certificate Fonts">
+                                            <option value="Cinzel">Cinzel (Elegant)</option>
+                                            <option value="Playfair Display">Playfair Display (Luxury)</option>
+                                            <option value="Cormorant Garamond">Cormorant Garamond (Classic)</option>
+                                            <option value="Libre Baskerville">Libre Baskerville (Traditional)</option>
+                                            <option value="Crimson Text">Crimson Text (Academic)</option>
+                                        </optgroup>
+                                        <optgroup label="Script & Handwritten">
+                                            <option value="Dancing Script">Dancing Script (Handwritten)</option>
+                                            <option value="Great Vibes">Great Vibes (Signature)</option>
+                                            <option value="Brush Script MT">Brush Script MT</option>
+                                            <option value="Lucida Handwriting">Lucida Handwriting</option>
+                                        </optgroup>
+                                        <optgroup label="Classic Serif">
+                                            <option value="Times New Roman">Times New Roman</option>
+                                            <option value="Georgia">Georgia</option>
+                                            <option value="Garamond">Garamond</option>
+                                            <option value="Book Antiqua">Book Antiqua</option>
+                                        </optgroup>
+                                        <optgroup label="Modern Sans-Serif">
+                                            <option value="Arial">Arial</option>
+                                            <option value="Helvetica">Helvetica</option>
+                                            <option value="Calibri">Calibri</option>
+                                            <option value="Trebuchet MS">Trebuchet MS</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                                 
-                                <div class="control-row mb-2">
-                                    <div class="row g-1">
-                                        <div class="col-7">
-                                            <label class="control-label small">Size</label>
+                                <div class="control-row">
+                                    <div class="d-flex gap-2">
+                                        <div class="flex-fill">
+                                            <label class="control-label">Size</label>
                                             <input type="number" id="fontSize" value="24" min="8" max="200" class="form-control form-control-sm">
                                         </div>
-                                        <div class="col-5">
-                                            <label class="control-label small">Color</label>
-                                            <input type="color" id="textColor" value="#000000" class="form-control form-control-color form-control-sm">
+                                        <div>
+                                            <label class="control-label">Color</label>
+                                            <input type="color" id="textColor" value="#000000" class="form-control form-control-color">
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="control-row">
-                                        <label class="control-label small">Add Image</label>
-                                        <input type="file" id="signatureUpload" accept="image/*" multiple class="form-control form-control-sm mb-2">
+                                    <label class="control-label">Alignment</label>
+                                    <div class="btn-group w-100" role="group" aria-label="Text alignment">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAlignment('left')">
+                                            <i class="bi bi-text-left"></i> Left
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAlignment('center')">
+                                            <i class="bi bi-text-center"></i> Center
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAlignment('right')">
+                                            <i class="bi bi-text-right"></i> Right
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="control-row">
+                                        <label class="control-label">Add Image</label>
+                                        <input type="file" id="signatureUpload" accept="image/*" multiple class="form-control form-control-sm mb-3">
                                         <div class="signature-list" id="signatureList"></div>
                                         <button onclick="addSignatureToCanvas()" class="btn btn-primary w-100 btn-sm" disabled id="addSignatureBtn">
-                                            <i class="bi bi-plus-circle"></i> Add
+                                            <i class="bi bi-plus-circle"></i> Add to Canvas
                                         </button>
                                 </div>
                             </div>
@@ -461,17 +493,17 @@
                 </div>
 
                 <!-- Left Sidebar - Quick Setup -->
-                <div class="col-lg-2">
+                <div class="col-lg-3">
                     <div class="setup-panel">
 
                         <!-- Step 1: Import Data -->
                         <div class="setup-step active">
                             <div class="step-number">1</div>
                             <div class="step-content">
-                                <h6 class="small">Import Data</h6>
-                                <input type="file" id="variableDataUpload" accept=".csv" class="form-control form-control-sm">
+                                <h6>Import Data</h6>
+                                <input type="file" id="variableDataUpload" accept=".csv" class="form-control">
                                 <button onclick="processCSV()" class="btn btn-outline-primary w-100 mt-2 btn-sm">
-                                    <i class="bi bi-upload"></i> CSV
+                                    <i class="bi bi-upload"></i> Process CSV
                                 </button>
                                 <div id="csvStatus" class="mt-2 small text-muted"></div>
                             </div>
@@ -481,16 +513,16 @@
                         <div class="setup-step">
                             <div class="step-number">2</div>
                             <div class="step-content">
-                                <h6 class="small">Generate</h6>
-                                <button id="downloadBtn" class="btn btn-success w-100 btn-sm generate-btn">
+                                <h6>Generate Certificates</h6>
+                                <button id="downloadBtn" class="btn btn-success w-100 btn-lg generate-btn">
                                     <i class="bi bi-download"></i>
-                                    <span>Generate</span>
+                                    <span>Generate All</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
+                <div class="col-lg-9">
                     <div class="variables-panel">
                         <div class="panel-header">
                             <h6><i class="bi bi-list-ul"></i> Variables</h6>
