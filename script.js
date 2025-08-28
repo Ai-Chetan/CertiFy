@@ -206,7 +206,7 @@ function refreshVariableInputs() {
         table.className = 'variable-table';
         
         const headerRow = document.createElement('tr');
-        headerRow.innerHTML = `<th>Row</th>` + variableNames.map(v => `<th>${v}</th>`).join('');
+        headerRow.innerHTML = `<th>Sr. No.</th>` + variableNames.map(v => `<th>${v}</th>`).join('');
         table.appendChild(headerRow);
 
         addTableRow(table, variableNames, 0);
@@ -286,7 +286,7 @@ function updateSignatureList() {
     `).join('');
     
     if (signatures.length === 0) {
-        list.innerHTML = '<p style="color: #666; text-align: center; margin: 10px 0;">No signatures uploaded yet</p>';
+        list.innerHTML = '<p style="color: #666; text-align: center; margin: 10px 0;">No images uploaded yet</p>';
     }
 }
 
@@ -344,32 +344,257 @@ function addSignatureToCanvas() {
 }
 
 /**
- * Zoom control functions
+ * Zoom System - Clean Implementation
+ * Maintains canvas at 100% internal size for consistent image quality
+ * Visual zoom is handled through CSS transforms on the container
+ */
+
+// Zoom configuration - Canva-like behavior
+const ZOOM_CONFIG = {
+    min: 0.1,       // 10% minimum zoom (very zoomed out)
+    max: 5.0,       // 500% maximum zoom (very zoomed in)  
+    step: 1.2,      // 20% zoom increment for buttons
+    wheel: 1.1,     // 10% smooth increment for wheel
+    default: 1.0    // 100% default zoom
+};
+
+/**
+ * Increases zoom level by configured step
  */
 function zoomIn() {
-    zoomLevel = Math.min(zoomLevel * 1.2, 3);
-    updateZoom();
-}
-
-function zoomOut() {
-    zoomLevel = Math.max(zoomLevel / 1.2, 0.5);
-    updateZoom();
-}
-
-function resetZoom() {
-    zoomLevel = 1;
-    updateZoom();
+    const newZoom = Math.min(zoomLevel * ZOOM_CONFIG.step, ZOOM_CONFIG.max);
+    setZoomLevel(newZoom);
 }
 
 /**
- * Updates the canvas zoom level and container size
+ * Decreases zoom level by configured step
  */
-function updateZoom() {
-    canvas.style.transform = `scale(${zoomLevel})`;
-    canvas.style.transformOrigin = 'top left';
-    container.style.width = (canvas.width * zoomLevel) + 'px';
-    container.style.height = (canvas.height * zoomLevel) + 'px';
-    document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+function zoomOut() {
+    const newZoom = Math.max(zoomLevel / ZOOM_CONFIG.step, ZOOM_CONFIG.min);
+    setZoomLevel(newZoom);
+}
+
+/**
+ * Resets zoom to default level (100%)
+ */
+function resetZoom() {
+    setZoomLevel(ZOOM_CONFIG.default);
+}
+
+/**
+ * Sets zoom level and updates the display
+ * @param {number} newZoom - New zoom level (0.25 to 4.0)
+ */
+function setZoomLevel(newZoom) {
+    // Clamp zoom level to valid range
+    zoomLevel = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, newZoom));
+    
+    // Update visual display
+    updateZoomDisplay();
+    updateZoomIndicator();
+}
+
+/**
+ * Updates zoom indicator styling with visual feedback
+ */
+function updateZoomIndicator() {
+    const zoomDisplay = document.querySelector('.zoom-display');
+    if (zoomDisplay) {
+        // Update percentage display
+        zoomDisplay.textContent = Math.round(zoomLevel * 100) + '%';
+        
+        // Add visual state classes
+        zoomDisplay.classList.toggle('zoomed-in', zoomLevel > 1.05);
+        zoomDisplay.classList.toggle('zoomed-out', zoomLevel < 0.95);
+    }
+}
+
+/**
+ * Updates the visual zoom display and layout
+ * Keeps canvas at 100% internal size, applies visual scaling to container
+ */
+function updateZoomDisplay() {
+    const workspace = document.querySelector('.canvas-workspace');
+    const container = document.getElementById('canvasContainer');
+    
+    if (!workspace || !container) return;
+    
+    // Apply visual zoom via CSS transform (keeps canvas internal size at 100%)
+    applyZoomTransform(container);
+    
+    // Update layout and centering based on zoom level
+    updateWorkspaceLayout(workspace, container);
+    
+    // Update scroll indicators if content overflows
+    updateScrollIndicators(workspace, container);
+    
+    // Immediate scroll to center for responsive feel
+    setTimeout(() => scrollToCenter(workspace, container), 10);
+    
+    // Update zoom level display
+    updateZoomLevelDisplay();
+}
+
+/**
+ * Applies zoom transform to container while maintaining internal canvas size
+ * @param {HTMLElement} container - Canvas container element
+ */
+function applyZoomTransform(container) {
+    const workspace = document.querySelector('.canvas-workspace');
+    const scaledWidth = canvas.width * zoomLevel;
+    const scaledHeight = canvas.height * zoomLevel;
+    const workspaceRect = workspace.getBoundingClientRect();
+    const availableWidth = workspaceRect.width - 30;
+    const availableHeight = workspaceRect.height - 30;
+    
+    const contentFits = scaledWidth <= availableWidth && scaledHeight <= availableHeight;
+    
+    if (contentFits) {
+        // Apply scale transform for flexbox layout
+        container.style.transform = `scale(${zoomLevel})`;
+        container.style.transformOrigin = 'center center';
+    } else {
+        // For absolute positioning, scaling is handled in centerContentInWorkspace
+        container.style.transform = `translate(-50%, -50%) scale(${zoomLevel})`;
+        container.style.transformOrigin = 'center center';
+    }
+    
+    // Keep canvas at native resolution (100% internal size)
+    canvas.style.transform = 'none';
+    canvas.style.transformOrigin = 'initial';
+    
+    // Maintain original container dimensions
+    container.style.width = `${canvas.width}px`;
+    container.style.height = `${canvas.height}px`;
+}
+
+/**
+ * Updates workspace layout and centering based on zoom level
+ * Always keeps content centered, enables scrolling when needed
+ * @param {HTMLElement} workspace - Canvas workspace element  
+ * @param {HTMLElement} container - Canvas container element
+ */
+function updateWorkspaceLayout(workspace, container) {
+    // Calculate scaled dimensions for layout decisions
+    const scaledWidth = canvas.width * zoomLevel;
+    const scaledHeight = canvas.height * zoomLevel;
+    const workspaceRect = workspace.getBoundingClientRect();
+    const availableWidth = workspaceRect.width - 40; // Account for padding
+    const availableHeight = workspaceRect.height - 40;
+    
+    // Determine if content fits in workspace
+    const fitsHorizontally = scaledWidth <= availableWidth;
+    const fitsVertically = scaledHeight <= availableHeight;
+    const fitsCompletely = fitsHorizontally && fitsVertically;
+    
+    // Always center the content - enable scrolling when it overflows
+    centerContentInWorkspace(workspace, container, fitsCompletely);
+}
+
+/**
+ * Centers content in workspace and handles overflow with scrolling
+ * @param {HTMLElement} workspace - Canvas workspace element
+ * @param {HTMLElement} container - Canvas container element  
+ * @param {boolean} fitsCompletely - Whether content fits without scrolling
+ */
+function centerContentInWorkspace(workspace, container, fitsCompletely = true) {
+    const scaledWidth = canvas.width * zoomLevel;
+    const scaledHeight = canvas.height * zoomLevel;
+    const workspaceRect = workspace.getBoundingClientRect();
+    const availableWidth = workspaceRect.width - 30; // Account for padding
+    const availableHeight = workspaceRect.height - 30;
+    
+    // Check if content actually fits
+    const contentFits = scaledWidth <= availableWidth && scaledHeight <= availableHeight;
+    
+    if (contentFits) {
+        // Content fits - use flexbox centering
+        workspace.style.display = 'flex';
+        workspace.style.justifyContent = 'center';
+        workspace.style.alignItems = 'center';
+        workspace.style.overflow = 'hidden';
+        workspace.style.padding = '15px';
+        
+        // Reset container positioning
+        container.style.position = 'static';
+        container.style.margin = '0';
+        container.style.left = 'auto';
+        container.style.top = 'auto';
+    } else {
+        // Content overflows - create proper scrollable area
+        workspace.style.display = 'block';
+        workspace.style.overflow = 'auto';
+        workspace.style.position = 'relative';
+        
+        // Calculate padding needed to center and allow full scrolling
+        const minPaddingX = Math.max(50, workspaceRect.width / 2);
+        const minPaddingY = Math.max(50, workspaceRect.height / 2);
+        
+        // Set padding that allows scrolling to see entire image
+        workspace.style.padding = `${minPaddingY}px ${minPaddingX}px`;
+        
+        // Position container absolutely in center
+        container.style.position = 'absolute';
+        container.style.left = '50%';
+        container.style.top = '50%';
+        container.style.transform = `translate(-50%, -50%)`;
+        container.style.margin = '0';
+    }
+}
+
+/**
+ * Updates scroll indicators when content overflows workspace
+ * @param {HTMLElement} workspace - Canvas workspace element
+ * @param {HTMLElement} container - Canvas container element
+ */
+function updateScrollIndicators(workspace, container) {
+    const workspaceRect = workspace.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Add CSS classes for scroll indicators
+    workspace.classList.toggle('has-horizontal-scroll', 
+        containerRect.width > workspaceRect.width);
+    workspace.classList.toggle('has-vertical-scroll', 
+        containerRect.height > workspaceRect.height);
+}
+
+/**
+ * Scrolls the workspace to center the canvas content perfectly
+ * @param {HTMLElement} workspace - Canvas workspace element
+ * @param {HTMLElement} container - Canvas container element
+ */
+function scrollToCenter(workspace, container) {
+    // Only scroll if we're using absolute positioning (overflow mode)
+    if (workspace.style.display === 'block' && workspace.style.overflow === 'auto') {
+        setTimeout(() => {
+            // Calculate center scroll position for absolute positioned content
+            const scrollLeft = Math.max(0, (workspace.scrollWidth - workspace.clientWidth) / 2);
+            const scrollTop = Math.max(0, (workspace.scrollHeight - workspace.clientHeight) / 2);
+            
+            workspace.scrollLeft = scrollLeft;
+            workspace.scrollTop = scrollTop;
+        }, 10);
+    }
+}
+
+/**
+ * Updates the zoom level percentage display
+ */
+function updateZoomLevelDisplay() {
+    const zoomLevelElement = document.getElementById('zoomLevel');
+    if (zoomLevelElement) {
+        zoomLevelElement.textContent = Math.round(zoomLevel * 100) + '%';
+    }
+}
+
+/**
+ * Shows or hides the template upload overlay
+ */
+function updateTemplateUploadOverlay() {
+    const overlay = document.getElementById('templateUploadOverlay');
+    if (overlay) {
+        overlay.style.display = backgroundImage ? 'none' : 'flex';
+    }
 }
 
 /**
@@ -381,6 +606,15 @@ document.querySelectorAll('input[name="mode"]').forEach(radio => {
         updateCursor();
         document.getElementById('brushControls').style.display = 
             currentMode === 'brush' ? 'block' : 'none';
+        
+        // Update mode instructions
+        document.querySelectorAll('.mode-instructions').forEach(instruction => {
+            instruction.style.display = 'none';
+        });
+        const currentInstruction = document.querySelector(`[data-mode="${currentMode}"]`);
+        if (currentInstruction) {
+            currentInstruction.style.display = 'flex';
+        }
     });
 });
 
@@ -389,20 +623,194 @@ document.getElementById('brushSize').addEventListener('input', function(e) {
 });
 
 /**
+ * Auto-fit Template System
+ * Automatically scales templates to fit optimally in the workspace
+ * while maintaining aspect ratio and setting zoom to 100%
+ */
+
+/**
+ * Calculates optimal canvas dimensions for a template to fit in workspace
+ * @param {number} imageWidth - Original image width
+ * @param {number} imageHeight - Original image height
+ * @returns {Object} Optimal dimensions {width, height, scale}
+ */
+function calculateOptimalCanvasSize(imageWidth, imageHeight) {
+    const workspace = document.querySelector('.canvas-workspace');
+    if (!workspace) {
+        return { width: imageWidth, height: imageHeight, scale: 1 };
+    }
+    
+    // Get available workspace dimensions (accounting for padding and UI)
+    const workspaceRect = workspace.getBoundingClientRect();
+    const maxWidth = Math.floor(workspaceRect.width * 0.8); // 80% of workspace width
+    const maxHeight = Math.floor(workspaceRect.height * 0.8); // 80% of workspace height
+    
+    // Ensure reasonable size limits
+    const minWidth = Math.min(400, maxWidth * 0.5);
+    const minHeight = Math.min(300, maxHeight * 0.5);
+    const maxCanvasWidth = Math.min(1920, maxWidth); // Limit to reasonable max
+    const maxCanvasHeight = Math.min(1080, maxHeight);
+    
+    // Calculate scale factors to fit within workspace
+    const scaleToFitX = maxCanvasWidth / imageWidth;
+    const scaleToFitY = maxCanvasHeight / imageHeight;
+    const scaleToFit = Math.min(scaleToFitX, scaleToFitY, 1); // Don't upscale
+    
+    // Calculate initial dimensions
+    let finalWidth = Math.round(imageWidth * scaleToFit);
+    let finalHeight = Math.round(imageHeight * scaleToFit);
+    
+    // Ensure minimum dimensions for usability
+    if (finalWidth < minWidth) {
+        const scale = minWidth / finalWidth;
+        finalWidth = minWidth;
+        finalHeight = Math.round(finalHeight * scale);
+    }
+    if (finalHeight < minHeight) {
+        const scale = minHeight / finalHeight;
+        finalHeight = minHeight;
+        finalWidth = Math.round(finalWidth * scale);
+    }
+    
+    // Final check to ensure it still fits in workspace
+    if (finalWidth > maxCanvasWidth) {
+        const scale = maxCanvasWidth / finalWidth;
+        finalWidth = maxCanvasWidth;
+        finalHeight = Math.round(finalHeight * scale);
+    }
+    if (finalHeight > maxCanvasHeight) {
+        const scale = maxCanvasHeight / finalHeight;
+        finalHeight = maxCanvasHeight;
+        finalWidth = Math.round(finalWidth * scale);
+    }
+    
+    return {
+        width: finalWidth,
+        height: finalHeight,
+        scale: finalWidth / imageWidth
+    };
+}
+
+/**
+ * Auto-fits template to optimal size while preserving original image quality
+ * Uses CSS scaling for display rather than re-drawing to maintain quality
+ * @param {Image} originalImage - The uploaded template image
+ */
+function autoFitTemplate(originalImage) {
+    const optimal = calculateOptimalCanvasSize(originalImage.width, originalImage.height);
+    
+    // Set canvas to the size that fits best in workspace
+    canvas.width = optimal.width;
+    canvas.height = optimal.height;
+    
+    // Store the original high-quality image without modification
+    backgroundImage = originalImage;
+    
+    // Create modified background canvas at the same size as display canvas
+    modifiedBackground = document.createElement('canvas');
+    modifiedBackground.width = optimal.width;
+    modifiedBackground.height = optimal.height;
+    const modCtx = modifiedBackground.getContext('2d');
+    
+    // Draw the original image scaled to the optimal size only for editing overlay
+    // This preserves the original image quality in backgroundImage
+    modCtx.drawImage(originalImage, 0, 0, optimal.width, optimal.height);
+    
+    // Reset zoom to 100% for consistent experience
+    setZoomLevel(1.0);
+    
+    // Update display and notify user
+    updateTemplateUploadOverlay();
+    redraw();
+    
+    const scalePercent = Math.round(optimal.scale * 100);
+    showNotification(
+        `Template fitted to ${optimal.width}×${optimal.height} (${scalePercent}% scale)`, 
+        'success'
+    );
+}
+
+/**
+ * Provides preset canvas sizes for common certificate formats
+ * @returns {Object} Preset dimensions for different certificate types
+ */
+function getPresetCanvasSizes() {
+    return {
+        'landscape-a4': { width: 1123, height: 794, name: 'A4 Landscape' },
+        'portrait-a4': { width: 794, height: 1123, name: 'A4 Portrait' },
+        'landscape-letter': { width: 1056, height: 816, name: 'Letter Landscape' },
+        'portrait-letter': { width: 816, height: 1056, name: 'Letter Portrait' },
+        'square': { width: 800, height: 800, name: 'Square' },
+        'wide': { width: 1200, height: 675, name: 'Wide Format' }
+    };
+}
+
+/**
+ * Manually resize template to specific dimensions
+ * @param {number} targetWidth - Target canvas width
+ * @param {number} targetHeight - Target canvas height
+ */
+function resizeTemplateToSize(targetWidth, targetHeight) {
+    if (!backgroundImage) {
+        showNotification('Please upload a template first', 'error');
+        return;
+    }
+    
+    // Store original image
+    const originalImage = new Image();
+    originalImage.onload = function() {
+        // Set canvas to target size
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        
+        // Create new background at target size
+        modifiedBackground = document.createElement('canvas');
+        modifiedBackground.width = targetWidth;
+        modifiedBackground.height = targetHeight;
+        const modCtx = modifiedBackground.getContext('2d');
+        
+        // Draw scaled image to fill target size
+        modCtx.drawImage(originalImage, 0, 0, targetWidth, targetHeight);
+        
+        // Update background image
+        backgroundImage = new Image();
+        backgroundImage.onload = function() {
+            setZoomLevel(1.0);
+            updateTemplateUploadOverlay();
+            redraw();
+            showNotification(`Template resized to ${targetWidth}×${targetHeight}`, 'success');
+        };
+        
+        backgroundImage.src = modifiedBackground.toDataURL();
+    };
+    
+    // Get current background image data
+    if (modifiedBackground) {
+        originalImage.src = modifiedBackground.toDataURL();
+    } else {
+        // Fallback to drawing current background
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(backgroundImage, 0, 0);
+        originalImage.src = tempCanvas.toDataURL();
+    }
+}
+
+/**
  * Updates the cursor based on the current mode
  */
 function updateCursor() {
     if (currentMode === 'brush') {
         canvas.style.cursor = 'crosshair';
-    } else if (currentMode === 'edit') {
-        canvas.style.cursor = 'text';
     } else {
         canvas.style.cursor = 'default';
     }
 }
 
 /**
- * Handles template image upload
+ * Handles template image upload with auto-fit functionality
  */
 document.getElementById('templateUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -411,19 +819,8 @@ document.getElementById('templateUpload').addEventListener('change', function(e)
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                backgroundImage = img;
-
-                modifiedBackground = document.createElement('canvas');
-                modifiedBackground.width = canvas.width;
-                modifiedBackground.height = canvas.height;
-                const modCtx = modifiedBackground.getContext('2d');
-                modCtx.drawImage(img, 0, 0);
-
-                updateZoom();
-                redraw();
-                showNotification('Template uploaded successfully!', 'success');
+                // Auto-fit the template to optimal size
+                autoFitTemplate(img);
             };
             img.src = event.target.result;
         };
@@ -510,15 +907,17 @@ function deleteSelected() {
 }
 
 /**
- * Redraws the entire canvas with all elements
+ * Redraws the entire canvas with all elements at full quality
  */
 function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw background image at full quality
     if (modifiedBackground) {
         ctx.drawImage(modifiedBackground, 0, 0);
     } else if (backgroundImage) {
-        ctx.drawImage(backgroundImage, 0, 0);
+        // Draw the background image scaled to canvas size while preserving quality
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
     }
 
     textElements.forEach(element => {
@@ -625,12 +1024,51 @@ function sampleColorAt(x, y) {
 }
 
 /**
+ * Coordinate System Utilities
+ * Handles conversion between screen coordinates and canvas coordinates
+ * accounting for zoom level while keeping canvas at 100% internal size
+ */
+
+/**
+ * Converts screen coordinates to canvas coordinates
+ * @param {MouseEvent} event - Mouse event
+ * @returns {Object} Canvas coordinates {x, y}
+ */
+function getCanvasCoordinates(event) {
+    const rect = canvas.getBoundingClientRect();
+    
+    // Convert screen coordinates to canvas coordinates
+    // Since visual zoom is applied via CSS transform, we need to account for it
+    const canvasX = (event.clientX - rect.left) / zoomLevel;
+    const canvasY = (event.clientY - rect.top) / zoomLevel;
+    
+    return {
+        x: Math.round(canvasX),
+        y: Math.round(canvasY)
+    };
+}
+
+/**
+ * Converts canvas coordinates to screen coordinates  
+ * @param {number} canvasX - Canvas X coordinate
+ * @param {number} canvasY - Canvas Y coordinate
+ * @returns {Object} Screen coordinates {x, y}
+ */
+function getScreenCoordinates(canvasX, canvasY) {
+    const rect = canvas.getBoundingClientRect();
+    
+    return {
+        x: Math.round(rect.left + (canvasX * zoomLevel)),
+        y: Math.round(rect.top + (canvasY * zoomLevel))
+    };
+}
+/**
  * Mouse event handlers for canvas interaction
  */
 canvas.addEventListener('mousedown', function(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoomLevel;
-    const y = (e.clientY - rect.top) / zoomLevel;
+    const coords = getCanvasCoordinates(e);
+    const x = coords.x;
+    const y = coords.y;
 
     if (currentMode === 'brush' && modifiedBackground) {
         isBrushing = true;
@@ -642,27 +1080,6 @@ canvas.addEventListener('mousedown', function(e) {
         colorSampled = true;
         startBrushStroke();
         brush(x, y);
-        return;
-    }
-
-    if (currentMode === 'edit') {
-        if (selectedSignature) {
-            const element = {
-                id: Date.now(),
-                type: 'image',
-                image: selectedSignature.image,
-                x: x - 75,
-                y: y - 37,
-                width: 150,
-                height: 75,
-                name: selectedSignature.name
-            };
-            imageElements.push(element);
-            redraw();
-            showNotification('Signature added', 'success');
-        } else {
-            showEditDialog(x, y);
-        }
         return;
     }
 
@@ -746,9 +1163,9 @@ canvas.addEventListener('mousedown', function(e) {
 });
 
 canvas.addEventListener('mousemove', function(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoomLevel;
-    const y = (e.clientY - rect.top) / zoomLevel;
+    const coords = getCanvasCoordinates(e);
+    const x = coords.x;
+    const y = coords.y;
     
     if (isBrushing && modifiedBackground && colorSampled) {
         brush(x, y);
@@ -816,6 +1233,41 @@ canvas.addEventListener('mouseup', function() {
     isDragging = false;
     isResizing = false;
 });
+
+// Simple wheel zoom: Only Ctrl+wheel for zoom
+canvas.addEventListener('wheel', function(e) {
+    // Only zoom with Ctrl+wheel, otherwise allow normal scrolling
+    if (e.ctrlKey || e.metaKey) {
+        e.preventDefault(); // Prevent page scroll only when zooming
+        
+        // Calculate zoom direction and amount
+        const zoomDirection = e.deltaY > 0 ? -1 : 1; // Reverse deltaY (down = zoom out)
+        const zoomFactor = ZOOM_CONFIG.wheel; // Use smooth wheel increment
+        
+        // Calculate new zoom level
+        let newZoom;
+        if (zoomDirection > 0) {
+            newZoom = Math.min(zoomLevel * zoomFactor, ZOOM_CONFIG.max);
+        } else {
+            newZoom = Math.max(zoomLevel / zoomFactor, ZOOM_CONFIG.min);
+        }
+        
+        // Only update if zoom actually changed
+        if (newZoom !== zoomLevel) {
+            const workspace = document.querySelector('.canvas-workspace');
+            const container = document.getElementById('canvasContainer');
+            
+            // Apply new zoom level
+            setZoomLevel(newZoom);
+            
+            // Update layout immediately
+            setTimeout(() => {
+                centerContentInWorkspace(workspace, container);
+                scrollToCenter(workspace, container);
+            }, 5);
+        }
+    }
+}, { passive: false });
 
 /**
  * Brush tool functions
@@ -1310,6 +1762,51 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         cancelEdit();
     }
+    
+    // Only keep Ctrl+F for auto-fit template
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        if (e.key === 'f' || e.key === 'F') {
+            // Ctrl+F: Re-fit template to optimal size
+            e.preventDefault();
+            if (backgroundImage) {
+                // Get original dimensions from background
+                const tempImg = new Image();
+                tempImg.onload = function() {
+                    autoFitTemplate(tempImg);
+                };
+                if (modifiedBackground) {
+                    tempImg.src = modifiedBackground.toDataURL();
+                } else {
+                    tempImg.src = backgroundImage.src;
+                }
+            }
+        }
+    }
+    
+    // Scroll shortcuts (Arrow keys when zoomed)
+    if (zoomLevel > 1.1 && !e.ctrlKey && !e.metaKey) {
+        const workspace = document.querySelector('.canvas-workspace');
+        const scrollStep = 50;
+        
+        switch(e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                workspace.scrollTop -= scrollStep;
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                workspace.scrollTop += scrollStep;
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                workspace.scrollLeft -= scrollStep;
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                workspace.scrollLeft += scrollStep;
+                break;
+        }
+    }
 });
 
 document.getElementById('editInput').addEventListener('keypress', function(e) {
@@ -1383,7 +1880,7 @@ function processCSV() {
             table.className = 'variable-table';
 
             const headerRow = document.createElement('tr');
-            headerRow.innerHTML = `<th>Row</th>` + 
+            headerRow.innerHTML = `<th>Sr. No.</th>` + 
                 variableNames.map(v => `<th>${v}</th>`).join('');
             table.appendChild(headerRow);
 
@@ -1453,7 +1950,7 @@ function processCSVData(csv) {
     table.className = 'variable-table';
 
     const headerRow = document.createElement('tr');
-    headerRow.innerHTML = `<th>Row</th>` + variableNames.map(v => `<th>${v}</th>`).join('');
+    headerRow.innerHTML = `<th>Sr. No.</th>` + variableNames.map(v => `<th>${v}</th>`).join('');
     table.appendChild(headerRow);
 
     rows.forEach((row, index) => {
@@ -1479,6 +1976,98 @@ style.textContent = `
     canvas.move { cursor: move; }
 `;
 document.head.appendChild(style);
+
+/**
+ * Resets the application state to initial values
+ */
+function resetApplicationState() {
+    // Reset application state variables
+    backgroundImage = null;
+    modifiedBackground = null;
+    textElements = [];
+    imageElements = [];
+    selectedElement = null;
+    isDragging = false;
+    isResizing = false;
+    dragOffset = { x: 0, y: 0 };
+    editingPosition = null;
+    brushStrokes = [];
+    currentMode = 'move';
+    zoomLevel = 1;
+    signatures = [];
+    selectedSignature = null;
+    
+    // Reset brush tool state
+    isBrushing = false;
+    lastBrushX = 0;
+    lastBrushY = 0;
+    sampledColor = '#ffffff';
+    colorSampled = false;
+    
+    // Reset UI elements
+    const variableFieldsContainer = document.getElementById('variableFieldsContainer');
+    if (variableFieldsContainer) {
+        variableFieldsContainer.innerHTML = `
+            <div class="no-variables">
+                <i class="bi bi-info-circle text-muted"></i>
+                <p class="text-muted mb-0">No variables added yet</p>
+                <small class="text-muted">Add variables to customize each certificate</small>
+            </div>
+        `;
+    }
+    
+    // Reset form inputs
+    const textContentInput = document.getElementById('textContent');
+    const fontFamilyInput = document.getElementById('fontFamily');
+    const fontSizeInput = document.getElementById('fontSize');
+    const colorInput = document.getElementById('textColor');
+    
+    if (textContentInput) textContentInput.value = 'Sample Text';
+    if (fontFamilyInput) fontFamilyInput.value = 'Cinzel';
+    if (fontSizeInput) fontSizeInput.value = '24';
+    if (colorInput) colorInput.value = '#000000';
+    
+    // Reset signature list
+    updateSignatureList();
+    
+    // Reset selected element display
+    updateSidebarForSelection();
+    
+    // Reset zoom
+    updateZoomDisplay();
+    
+    // Reset template upload overlay
+    updateTemplateUploadOverlay();
+    
+    // Reset mode to move
+    const moveMode = document.getElementById('moveMode');
+    if (moveMode) {
+        moveMode.checked = true;
+        currentMode = 'move';
+        updateCursor();
+        
+        // Hide brush controls
+        const brushControls = document.getElementById('brushControls');
+        if (brushControls) brushControls.style.display = 'none';
+    }
+    
+    // Reset CSV status
+    const csvStatus = document.getElementById('csvStatus');
+    if (csvStatus) {
+        csvStatus.textContent = '';
+        csvStatus.style.color = '';
+    }
+    
+    // Disable buttons that require selection
+    const deleteBtn = document.getElementById('deleteBtn');
+    const addSignatureBtn = document.getElementById('addSignatureBtn');
+    if (deleteBtn) deleteBtn.disabled = true;
+    if (addSignatureBtn) addSignatureBtn.disabled = true;
+    
+    // Hide edit overlay
+    const editOverlay = document.getElementById('editOverlay');
+    if (editOverlay) editOverlay.style.display = 'none';
+}
 
 /**
  * Ensures fonts are loaded before use
@@ -1522,11 +2111,11 @@ function isFontAvailable(fontFamily) {
  */
 updateCursor();
 updateSidebarForSelection();
-ctx.fillStyle = '#f0f0f0';
+updateTemplateUploadOverlay();
+
+// Initialize canvas with a clean background
+ctx.fillStyle = '#f8fafc';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.fillStyle = '#666';
-ctx.font = '20px Arial';
-ctx.fillText('Upload a template to get started', 50, 50);
 
 // Load fonts and show status
 loadFonts().then(() => {

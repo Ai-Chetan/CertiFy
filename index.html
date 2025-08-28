@@ -16,286 +16,493 @@
 </head>
 <body>
     <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient">
-        <div class="container-fluid">
-            <div class="navbar-brand d-flex align-items-center">
-                <div class="brand-icon">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient py-1">
+        <div class="container-fluid px-3">
+            <div class="navbar-brand d-flex align-items-center mb-0">
+                <div class="brand-icon me-2">
                     <i class="bi bi-award-fill"></i>
                 </div>
                 <div>
-                    <h3 class="mb-0 fw-bold">CertiFy</h3>
+                    <h4 class="mb-0 fw-bold">CertiFy</h4>
+                    <small class="text-white-50 d-none d-md-block">Professional Certificate Generator</small>
                 </div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="navbar-nav ms-auto d-flex flex-row gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="showLandingPage()" id="homeBtn">
+                    <i class="bi bi-house"></i> <span class="d-none d-md-inline">Home</span>
+                </button>
+                <button class="btn btn-outline-light btn-sm" onclick="showMainApp()" id="appBtn" style="display: none;">
+                    <i class="bi bi-tools"></i> <span class="d-none d-md-inline">Start Creating</span>
+                </button>
+                <button class="btn btn-outline-warning btn-sm" onclick="startFresh()" id="freshBtn" style="display: none;">
+                    <i class="bi bi-arrow-clockwise"></i> <span class="d-none d-md-inline">Start Fresh</span>
+                </button>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid py-4">
-        <div class="row g-4">
-            <!-- Left Sidebar - Quick Setup -->
-            <div class="col-lg-3">
-                <div class="setup-panel">
-                    <div class="setup-header">
-                        <h5><i class="bi bi-lightning-charge"></i> Quick Setup</h5>
-                        <p class="text-muted small mb-0">Get started in 3 easy steps</p>
+    <!-- Landing Page -->
+    <div id="landingPage" class="landing-page">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="container text-center">
+                <div class="hero-content">
+                    <h1 class="hero-title">Professional Certificate Generator</h1>
+                    <p class="hero-subtitle">Create stunning, personalized certificates in bulk with our powerful and intuitive platform</p>
+                    
+                    <div class="hero-features">
+                        <div class="feature-badge">
+                            <i class="bi bi-lightning-charge"></i>
+                            <span>Bulk Generation</span>
+                        </div>
+                        <div class="feature-badge">
+                            <i class="bi bi-palette"></i>
+                            <span>Professional Fonts</span>
+                        </div>
+                        <div class="feature-badge">
+                            <i class="bi bi-file-earmark-zip"></i>
+                            <span>ZIP Download</span>
+                        </div>
+                        <div class="feature-badge">
+                            <i class="bi bi-brush"></i>
+                            <span>Advanced Editing</span>
+                        </div>
                     </div>
+                    
+                    <button class="btn btn-primary btn-lg start-btn" onclick="showMainApp()">
+                        <i class="bi bi-rocket"></i> Start Creating Certificates
+                    </button>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Step 1: Template Upload -->
-                    <div class="setup-step active">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h6>Upload Template</h6>
-                            <div class="upload-area">
-                                <input type="file" id="templateUpload" accept="image/*" class="form-control">
-                                <div class="upload-placeholder">
-                                    <i class="bi bi-cloud-upload"></i>
-                                    <p>Choose certificate template</p>
-                                </div>
+        <!-- Features Overview -->
+        <div class="features-overview">
+            <div class="container">
+                <h2 class="section-title">What CertiFy Can Do</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="bi bi-cloud-upload"></i>
+                            </div>
+                            <h4>Easy Template Upload</h4>
+                            <p>Upload your certificate template image and start customizing immediately with our intuitive interface.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="bi bi-braces"></i>
+                            </div>
+                            <h4>Dynamic Variables</h4>
+                            <p>Add variable fields like names, dates, and course titles that automatically populate for each certificate.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="bi bi-file-earmark-spreadsheet"></i>
+                            </div>
+                            <h4>CSV Data Import</h4>
+                            <p>Import recipient data from CSV files to generate hundreds of certificates with a single click.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="help-section">
+            <div class="container">
+                <h2 class="section-title">Complete Feature Guide</h2>
+                
+                <div class="help-categories">
+                    <div class="help-category">
+                        <div class="help-header">
+                            <h3><i class="bi bi-1-circle-fill"></i> Getting Started</h3>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-item">
+                                <h5><i class="bi bi-cloud-upload text-primary"></i> Template Upload</h5>
+                                <p>Start by uploading your certificate template image (PNG, JPG, or JPEG). The canvas will automatically adjust to your template's dimensions. Supported formats include high-resolution images up to 10MB.</p>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-arrows-move text-success"></i> Navigation Modes</h5>
+                                <ul>
+                                    <li><strong>Move Mode:</strong> Default mode for selecting and repositioning elements</li>
+                                    <li><strong>Brush Mode:</strong> Paint over unwanted text to remove it from the template</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: Import Data -->
-                    <div class="setup-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h6>Import Data</h6>
-                            <input type="file" id="variableDataUpload" accept=".csv" class="form-control">
-                            <button onclick="processCSV()" class="btn btn-outline-primary w-100 mt-2 btn-sm">
-                                <i class="bi bi-upload"></i> Process CSV
-                            </button>
-                            <div id="csvStatus" class="mt-2 small text-muted"></div>
+                    <div class="help-category">
+                        <div class="help-header">
+                            <h3><i class="bi bi-2-circle-fill"></i> Text & Content Management</h3>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-item">
+                                <h5><i class="bi bi-type text-info"></i> Adding Text</h5>
+                                <p>Add static text that appears the same on every certificate. Choose from over 25 professional fonts including elegant serifs like Cinzel and Playfair Display, handwritten scripts like Dancing Script, and classic options like Times New Roman.</p>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-braces text-warning"></i> Variable Fields</h5>
+                                <p>Create dynamic fields that change for each certificate. Variables are center-aligned automatically and appear with yellow highlighting. Common variables include:</p>
+                                <ul>
+                                    <li><strong>{{NAME}}</strong> - Recipient's full name</li>
+                                    <li><strong>{{COURSE}}</strong> - Course or achievement title</li>
+                                    <li><strong>{{DATE}}</strong> - Completion or award date</li>
+                                    <li><strong>{{INSTRUCTOR}}</strong> - Instructor or authority name</li>
+                                </ul>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-palette text-danger"></i> Text Styling</h5>
+                                <p>Customize font family, size (8-200px), and color for each text element. The selected element panel shows real-time previews of your changes.</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Step 3: Generate -->
-                    <div class="setup-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h6>Generate Certificates</h6>
-                            <button id="downloadBtn" class="btn btn-success w-100 btn-lg generate-btn">
-                                <i class="bi bi-download"></i>
-                                <span>Generate All</span>
-                            </button>
+                    <div class="help-category">
+                        <div class="help-header">
+                            <h3><i class="bi bi-3-circle-fill"></i> Advanced Editing Tools</h3>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-item">
+                                <h5><i class="bi bi-brush text-warning"></i> Brush Tool</h5>
+                                <p>Remove unwanted text or elements from your template:</p>
+                                <ul>
+                                    <li>Switch to Brush Mode and adjust brush size (5-50px)</li>
+                                    <li>The tool automatically samples the background color</li>
+                                    <li>Paint over text to make it disappear</li>
+                                    <li>Use "Undo Last" to reverse brush strokes</li>
+                                </ul>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-pen text-info"></i> Signature Management</h5>
+                                <p>Add professional signatures to your certificates:</p>
+                                <ul>
+                                    <li>Upload multiple signature images (PNG recommended for transparency)</li>
+                                    <li>Select a signature and use "Add to Canvas" button to place it on the certificate</li>
+                                    <li>Resize signatures by dragging corner handles</li>
+                                    <li>Delete signatures from the list when no longer needed</li>
+                                </ul>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-zoom-in text-success"></i> Zoom & Navigation</h5>
+                                <p>Use zoom controls for precise editing. Zoom range: 50% to 300%. Click the percentage to reset to 100%.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-header">
+                            <h3><i class="bi bi-4-circle-fill"></i> Data Import & Batch Processing</h3>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-item">
+                                <h5><i class="bi bi-file-earmark-spreadsheet text-primary"></i> CSV Data Import</h5>
+                                <p>Prepare your data in a CSV file with columns matching your variable names:</p>
+                                <div class="code-example">
+                                    <strong>Example CSV format:</strong><br>
+                                    NAME,COURSE,DATE,INSTRUCTOR<br>
+                                    John Smith,Web Development,2024-03-15,Dr. Johnson<br>
+                                    Jane Doe,Data Science,2024-03-15,Prof. Williams
+                                </div>
+                                <p>Click "Process CSV" to automatically populate the variable table with your data.</p>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-table text-info"></i> Manual Data Entry</h5>
+                                <p>Enter data directly in the variable table. New rows are automatically added as you type. Each row represents one certificate.</p>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-download text-success"></i> Bulk Generation</h5>
+                                <p>Click "Generate All Certificates" to create a ZIP file containing all certificates as high-quality JPEG images. Files are automatically named based on the recipient data.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-header">
+                            <h3><i class="bi bi-5-circle-fill"></i> Tips & Best Practices</h3>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-item">
+                                <h5><i class="bi bi-lightbulb text-warning"></i> Design Tips</h5>
+                                <ul>
+                                    <li>Use high-resolution templates (300 DPI) for best print quality</li>
+                                    <li>Choose contrasting colors for text visibility</li>
+                                    <li>Center important variable fields like names</li>
+                                    <li>Test with sample data before bulk generation</li>
+                                    <li>Use elegant fonts like Cinzel or Playfair Display for formal certificates</li>
+                                </ul>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-speedometer2 text-success"></i> Performance Tips</h5>
+                                <ul>
+                                    <li>Keep template images under 5MB for faster processing</li>
+                                    <li>Limit to 500 certificates per batch for optimal performance</li>
+                                    <li>Use PNG format for signatures with transparency</li>
+                                    <li>Save your work by downloading single test certificates first</li>
+                                </ul>
+                            </div>
+                            <div class="help-item">
+                                <h5><i class="bi bi-shield-check text-info"></i> Quality Assurance</h5>
+                                <ul>
+                                    <li>Preview your template with sample data before bulk generation</li>
+                                    <li>Check variable alignment and spacing</li>
+                                    <li>Verify CSV data formatting and encoding (UTF-8 recommended)</li>
+                                    <li>Test download with a small batch first</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Signatures Section -->
-                <div class="tool-panel mt-4">
-                    <div class="panel-header">
-                        <h6><i class="bi bi-pen"></i> Signatures</h6>
-                    </div>
-                    <div class="panel-body">
-                        <input type="file" id="signatureUpload" accept="image/*" multiple class="form-control form-control-sm mb-3">
-                        <div class="signature-list" id="signatureList"></div>
-                        <button onclick="addSignatureToCanvas()" class="btn btn-info w-100 btn-sm" disabled id="addSignatureBtn">
-                            <i class="bi bi-plus-circle"></i> Add to Canvas
+                <div class="help-footer">
+                    <div class="text-center">
+                        <h4>Ready to Get Started?</h4>
+                        <p class="text-muted">Create professional certificates in minutes with our intuitive tools.</p>
+                        <button class="btn btn-primary btn-lg" onclick="showMainApp()">
+                            <i class="bi bi-arrow-right"></i> Start Creating Now
                         </button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Main Canvas Area -->
-            <div class="col-lg-6">
-                <div class="canvas-panel">
-                    <!-- Toolbar -->
-                    <div class="toolbar">
-                        <!-- Editing Modes -->
-                        <div class="tool-group">
-                            <div class="btn-group mode-selector" role="group">
-                                <input type="radio" class="btn-check" name="mode" value="move" id="moveMode" autocomplete="off" checked>
-                                <label class="btn btn-outline-primary" for="moveMode" title="Move elements">
-                                    <i class="bi bi-arrows-move"></i>
-                                </label>
-
-                                <input type="radio" class="btn-check" name="mode" value="edit" id="editMode" autocomplete="off">
-                                <label class="btn btn-outline-primary" for="editMode" title="Add text">
-                                    <i class="bi bi-pencil"></i>
-                                </label>
-
-                                <input type="radio" class="btn-check" name="mode" value="brush" id="brushMode" autocomplete="off">
-                                <label class="btn btn-outline-primary" for="brushMode" title="Remove text">
-                                    <i class="bi bi-brush"></i>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Zoom Controls -->
-                        <div class="tool-group">
-                            <div class="btn-group zoom-controls" role="group">
-                                <button type="button" class="btn btn-outline-secondary" onclick="zoomOut()" title="Zoom out">
-                                    <i class="bi bi-dash"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary zoom-display" onclick="resetZoom()" title="Reset zoom">
-                                    <span id="zoomLevel">100%</span>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="zoomIn()" title="Zoom in">
-                                    <i class="bi bi-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="tool-group ms-auto">
-                            <button onclick="deleteSelected()" id="deleteBtn" class="btn btn-outline-danger" disabled title="Delete selected">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Brush Controls (Hidden by default) -->
-                    <div class="brush-panel" id="brushControls" style="display: none;">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="brush-size-control">
-                                <label class="form-label small mb-1">Brush Size</label>
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="range" class="form-range" id="brushSize" min="5" max="50" value="20">
-                                    <span id="brushSizeDisplay" class="size-display">20px</span>
+    <!-- Main Application (Hidden by default) -->
+    <div id="mainApp" style="display: none;">
+        <div class="container-fluid">
+            <div class="row mt-2">
+                <!-- Main Canvas Area - Increased from col-lg-9 to col-lg-10 -->
+                <div class="col-lg-10">
+                    <div class="canvas-panel">
+                        <!-- Toolbar -->
+                        <div class="toolbar">
+                            <!-- Editing Modes -->
+                            <div class="tool-group">
+                                <div class="btn-group mode-selector" role="group">
+                                    <input type="radio" class="btn-check" name="mode" value="move" id="moveMode" autocomplete="off" checked>
+                                    <label class="btn btn-outline-primary" for="moveMode" title="Move elements">
+                                        <i class="bi bi-arrows-move"></i>
+                                    </label>
+                                    <input type="radio" class="btn-check" name="mode" value="brush" id="brushMode" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="brushMode" title="Remove text">
+                                        <i class="bi bi-brush"></i>
+                                    </label>
                                 </div>
                             </div>
-                            <div class="current-color-display">
-                                <label class="form-label small mb-1">Color</label>
-                                <div id="currentColor" class="color-preview"></div>
+
+                            <!-- Zoom Controls -->
+                            <div class="tool-group">
+                                <div class="btn-group zoom-controls" role="group">
+                                    <button type="button" class="btn" onclick="zoomOut()" title="Zoom out">
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                    <button type="button" class="btn zoom-display" onclick="resetZoom()" title="Reset zoom">
+                                        <span id="zoomLevel">100%</span>
+                                    </button>
+                                    <button type="button" class="btn" onclick="zoomIn()" title="Zoom in">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="undoLastBrush()" title="Undo last brush stroke">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                            </button>
+
+                            <!-- Quick Actions -->
+                            <div class="tool-group ms-auto">
+                                <button onclick="deleteSelected()" id="deleteBtn" class="btn btn-outline-danger" disabled title="Delete selected">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Brush Controls (Hidden by default) -->
+                        <div class="brush-panel" id="brushControls" style="display: none;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="brush-size-control">
+                                    <label class="form-label small mb-1">Brush Size</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range" id="brushSize" min="5" max="50" value="20">
+                                        <span id="brushSizeDisplay" class="size-display">20px</span>
+                                    </div>
+                                </div>
+                                <div class="current-color-display">
+                                    <label class="form-label small mb-1">Color</label>
+                                    <div id="currentColor" class="color-preview"></div>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="undoLastBrush()" title="Undo last brush stroke">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Container -->
+                        <div class="canvas-workspace">
+                            <div class="canvas-container" id="canvasContainer">
+                                <canvas id="certificateCanvas" width="900" height="600"></canvas>
+                                
+                                <!-- Template Upload Overlay (shown when canvas is empty) -->
+                                <div id="templateUploadOverlay" class="template-upload-overlay">
+                                    <div class="upload-content">
+                                        <div class="upload-icon">
+                                            <i class="bi bi-cloud-upload"></i>
+                                        </div>
+                                        <h5>Upload Certificate Template</h5>
+                                        <p class="text-muted">Choose your certificate template image to get started</p>
+                                        <input type="file" id="templateUpload" accept="image/*" class="form-control mb-3" style="display: none;">
+                                        <button class="btn btn-primary" onclick="document.getElementById('templateUpload').click()">
+                                            <i class="bi bi-upload"></i> Choose Template
+                                        </button>
+                                        <div class="mt-3">
+                                            <small class="text-muted">Supports PNG, JPG, JPEG files up to 10MB</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Edit Overlay -->
+                                <div id="editOverlay" class="edit-overlay">
+                                    <div class="overlay-content">
+                                        <h6>Add Text</h6>
+                                        <input type="text" id="editInput" placeholder="Enter text" class="form-control mb-2">
+                                        <div class="d-flex gap-2">
+                                            <button onclick="confirmEdit()" class="btn btn-success btn-sm flex-fill">
+                                                <i class="bi bi-check"></i> Add
+                                            </button>
+                                            <button onclick="makeVariable()" class="btn btn-warning btn-sm flex-fill">
+                                                <i class="bi bi-braces"></i> Variable
+                                            </button>
+                                            <button onclick="cancelEdit()" class="btn btn-outline-secondary btn-sm">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="instructions-panel">
+                            <div class="mode-instructions" data-mode="move">
+                                <i class="bi bi-arrows-move text-primary"></i>
+                                <span><strong>Move Mode:</strong> Drag elements to reposition them</span>
+                            </div>
+                            <div class="mode-instructions" data-mode="brush" style="display: none;">
+                                <i class="bi bi-brush text-warning"></i>
+                                <span><strong>Brush Mode:</strong> Paint over unwanted text to remove it</span>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Canvas Container -->
-                    <div class="canvas-workspace">
-                        <div class="canvas-container" id="canvasContainer">
-                            <canvas id="certificateCanvas" width="800" height="600"></canvas>
-                            <div id="editOverlay" class="edit-overlay">
-                                <div class="overlay-content">
-                                    <h6>Add Text</h6>
-                                    <input type="text" id="editInput" placeholder="Enter text" class="form-control mb-2">
-                                    <div class="d-flex gap-2">
-                                        <button onclick="confirmEdit()" class="btn btn-success btn-sm flex-fill">
-                                            <i class="bi bi-check"></i> Add
+                <!-- Right Sidebar - Customization -->
+                <div class="col-lg-2">
+                    <!-- Selected Element Info -->
+                    <div class="element-panel mb-3">
+                        <div class="panel-header">
+                            <h6><i class="bi bi-cursor"></i> Selected</h6>
+                        </div>
+                        <div class="panel-body p-2">
+                            <div id="selectedNameDisplay" class="selected-element-name mb-2"></div>
+                            
+                            <!-- Text Styling -->
+                            <div class="styling-controls">
+                                <div class="control-row mb-2">
+                                    <label class="control-label small">Add Text</label>
+                                    <input type="text" id="textContent" placeholder="Enter text" value="Name" class="form-control form-control-sm mb-2">
+                                    <div class="d-grid gap-1">
+                                        <button onclick="addText()" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-type"></i> Text
                                         </button>
-                                        <button onclick="makeVariable()" class="btn btn-warning btn-sm flex-fill">
+                                        <button onclick="addVariable()" class="btn btn-outline-warning btn-sm">
                                             <i class="bi bi-braces"></i> Variable
                                         </button>
-                                        <button onclick="cancelEdit()" class="btn btn-outline-secondary btn-sm">
-                                            <i class="bi bi-x"></i>
-                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Instructions -->
-                    <div class="instructions-panel">
-                        <div class="mode-instructions" data-mode="move">
-                            <i class="bi bi-arrows-move text-primary"></i>
-                            <span><strong>Move Mode:</strong> Drag elements to reposition them</span>
-                        </div>
-                        <div class="mode-instructions" data-mode="edit" style="display: none;">
-                            <i class="bi bi-pencil text-info"></i>
-                            <span><strong>Edit Mode:</strong> Click to add text or place signatures</span>
-                        </div>
-                        <div class="mode-instructions" data-mode="brush" style="display: none;">
-                            <i class="bi bi-brush text-warning"></i>
-                            <span><strong>Brush Mode:</strong> Paint over unwanted text to remove it</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Sidebar - Customization -->
-            <div class="col-lg-3">
-                <!-- Selected Element Info -->
-                <div class="element-panel mb-4">
-                    <div class="panel-header">
-                        <h6><i class="bi bi-cursor"></i> Selected Element</h6>
-                    </div>
-                    <div class="panel-body">
-                        <div id="selectedNameDisplay" class="selected-element-name"></div>
-                        
-                        <!-- Text Styling -->
-                        <div class="styling-controls">
-                            <div class="control-row">
-                                <label class="control-label">Font</label>
-                                <select id="fontFamily" class="form-select form-select-sm">
-                                    <optgroup label="Premium Certificate Fonts">
+                                <div class="control-row mb-2">
+                                    <label class="control-label small">Font</label>
+                                    <select id="fontFamily" class="form-select form-select-sm">
                                         <option value="Cinzel">Cinzel (Elegant)</option>
-                                        <option value="Playfair Display">Playfair Display (Luxury)</option>
-                                        <option value="Cormorant Garamond">Cormorant Garamond (Classic)</option>
-                                        <option value="Libre Baskerville">Libre Baskerville (Traditional)</option>
-                                        <option value="Crimson Text">Crimson Text (Academic)</option>
-                                    </optgroup>
-                                    <optgroup label="Script & Handwritten">
-                                        <option value="Dancing Script">Dancing Script (Handwritten)</option>
-                                        <option value="Great Vibes">Great Vibes (Signature)</option>
-                                        <option value="Brush Script MT">Brush Script MT</option>
-                                        <option value="Lucida Handwriting">Lucida Handwriting</option>
-                                    </optgroup>
-                                    <optgroup label="Classic Serif">
-                                        <option value="Times New Roman">Times New Roman</option>
-                                        <option value="Georgia">Georgia</option>
-                                        <option value="Garamond">Garamond</option>
-                                        <option value="Book Antiqua">Book Antiqua</option>
-                                    </optgroup>
-                                    <optgroup label="Modern Sans-Serif">
+                                        <option value="Playfair Display">Playfair Display</option>
                                         <option value="Arial">Arial</option>
-                                        <option value="Helvetica">Helvetica</option>
-                                        <option value="Calibri">Calibri</option>
-                                        <option value="Trebuchet MS">Trebuchet MS</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            
-                            <div class="control-row">
-                                <div class="d-flex gap-2">
-                                    <div class="flex-fill">
-                                        <label class="control-label">Size</label>
-                                        <input type="number" id="fontSize" value="24" min="8" max="200" class="form-control form-control-sm">
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Dancing Script">Dancing Script</option>
+                                        <option value="Great Vibes">Great Vibes</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="control-row mb-2">
+                                    <div class="row g-1">
+                                        <div class="col-7">
+                                            <label class="control-label small">Size</label>
+                                            <input type="number" id="fontSize" value="24" min="8" max="200" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-5">
+                                            <label class="control-label small">Color</label>
+                                            <input type="color" id="textColor" value="#000000" class="form-control form-control-color form-control-sm">
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="control-label">Color</label>
-                                        <input type="color" id="textColor" value="#000000" class="form-control form-control-color">
-                                    </div>
+                                </div>
+
+                                <div class="control-row">
+                                        <label class="control-label small">Add Image</label>
+                                        <input type="file" id="signatureUpload" accept="image/*" multiple class="form-control form-control-sm mb-2">
+                                        <div class="signature-list" id="signatureList"></div>
+                                        <button onclick="addSignatureToCanvas()" class="btn btn-primary w-100 btn-sm" disabled id="addSignatureBtn">
+                                            <i class="bi bi-plus-circle"></i> Add
+                                        </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Add Content -->
-                <div class="content-panel mb-4">
-                    <div class="panel-header">
-                        <h6><i class="bi bi-plus-circle"></i> Add Content</h6>
-                    </div>
-                    <div class="panel-body">
-                        <div class="add-text-section">
-                            <input type="text" id="textContent" placeholder="Enter text content" value="Sample Text" class="form-control mb-2">
-                            <div class="d-flex gap-2">
-                                <button onclick="addText()" class="btn btn-primary flex-fill btn-sm">
-                                    <i class="bi bi-type"></i> Add Text
+                <!-- Left Sidebar - Quick Setup -->
+                <div class="col-lg-2">
+                    <div class="setup-panel">
+
+                        <!-- Step 1: Import Data -->
+                        <div class="setup-step active">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h6 class="small">Import Data</h6>
+                                <input type="file" id="variableDataUpload" accept=".csv" class="form-control form-control-sm">
+                                <button onclick="processCSV()" class="btn btn-outline-primary w-100 mt-2 btn-sm">
+                                    <i class="bi bi-upload"></i> CSV
                                 </button>
-                                <button onclick="addVariable()" class="btn btn-outline-warning flex-fill btn-sm">
-                                    <i class="bi bi-braces"></i> Variable
+                                <div id="csvStatus" class="mt-2 small text-muted"></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Generate -->
+                        <div class="setup-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h6 class="small">Generate</h6>
+                                <button id="downloadBtn" class="btn btn-success w-100 btn-sm generate-btn">
+                                    <i class="bi bi-download"></i>
+                                    <span>Generate</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Variable Fields -->
-                <div class="variables-panel">
-                    <div class="panel-header">
-                        <h6><i class="bi bi-list-ul"></i> Variables</h6>
-                        <small class="text-muted">Fields that change per certificate</small>
-                    </div>
-                    <div class="panel-body">
-                        <div id="variableFieldsContainer" class="variables-container">
-                            <div class="no-variables">
-                                <i class="bi bi-info-circle text-muted"></i>
-                                <p class="text-muted mb-0">No variables added yet</p>
-                                <small class="text-muted">Add variables to customize each certificate</small>
+                <div class="col-lg-8">
+                    <div class="variables-panel">
+                        <div class="panel-header">
+                            <h6><i class="bi bi-list-ul"></i> Variables</h6>
+                            <small class="text-muted">Fields that change per certificate</small>
+                        </div>
+                        <div class="panel-body">
+                            <div id="variableFieldsContainer" class="variables-container">
+                                <div class="no-variables">
+                                    <i class="bi bi-info-circle text-muted"></i>
+                                    <p class="text-muted mb-0">No variables added yet</p>
+                                    <small class="text-muted">Add variables to customize each certificate</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -309,5 +516,50 @@
     <!-- JSZip Library for creating zip files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        // Navigation Functions
+        function showLandingPage() {
+            document.getElementById('landingPage').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('homeBtn').style.display = 'none';
+            document.getElementById('appBtn').style.display = 'inline-block';
+            document.getElementById('freshBtn').style.display = 'none';
+        }
+        
+        function showMainApp() {
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('homeBtn').style.display = 'inline-block';
+            document.getElementById('appBtn').style.display = 'none';
+            document.getElementById('freshBtn').style.display = 'inline-block';
+        }
+        
+        function startFresh() {
+            if (confirm('This will clear your current work and start fresh. Are you sure?')) {
+                // Clear canvas
+                if (typeof ctx !== 'undefined') {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#666';
+                    ctx.font = '20px Arial';
+                    ctx.fillText('Upload a template to get started', 50, 50);
+                }
+                
+                // Reset application state
+                if (typeof resetApplicationState === 'function') {
+                    resetApplicationState();
+                }
+                
+                showNotification('Started fresh! Upload a new template to begin.', 'success');
+            }
+        }
+           
+        // Initialize - Show landing page on load
+        document.addEventListener('DOMContentLoaded', function() {
+            showLandingPage();
+        });
+    </script>
 </body>
 </html>
